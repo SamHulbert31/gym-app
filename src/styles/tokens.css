@@ -1,0 +1,27 @@
+:root {
+  --bg: #0e0f11;
+  --card: #17191c;
+  --nav: #121316;
+  --border: #26292e;
+  --border-strong: #3a3e45;
+  --text: #f2f3f5;
+  --text-2: #d5d8dc;
+  --muted: #a0a6ae;
+  --accent: #c8f03c;
+  --on-accent: #0e0f11;
+  --on-accent-soft: #2f3a0c;
+  --accent-tint: #1d2014;
+  --accent-tint-border: #3f4a1a;
+  --warn: #f2a65a;
+  --bar-neutral: #5b6470;
+
+  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: Inter, system-ui, sans-serif;
+
+  --pad-x: 20px;
+  --gap: 14px;
+  --radius-card: 16px;
+
+  --inset-top: env(safe-area-inset-top, 0px);
+  --inset-bottom: env(safe-area-inset-bottom, 0px);
+}
