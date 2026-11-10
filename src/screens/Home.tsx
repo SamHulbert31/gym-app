@@ -1,11 +1,27 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight } from '../components/Icons';
+import { useActiveWorkout } from '../hooks/data';
+import { createWorkout } from '../db/workouts';
 import { muscleSets, records, weekDays } from '../placeholder';
 
 const today = new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
 const maxSets = Math.max(...muscleSets.map(([, sets]) => sets));
 
+const startedAgo = (iso: string | undefined) => {
+  if (!iso) return '';
+  const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  return min < 60 ? `${min} min ago` : `${Math.floor(min / 60)} h ${min % 60} min ago`;
+};
+
 export default function Home() {
+  const navigate = useNavigate();
+  const active = useActiveWorkout();
+
+  const build = async () => {
+    const w = await createWorkout();
+    navigate(`/builder/${w.id}`);
+  };
+
   return (
     <div className="page">
       <div className="title-block">
@@ -13,14 +29,28 @@ export default function Home() {
         <h1 className="h1">Ready to train?</h1>
       </div>
 
-      <Link to="/generate" className="cta">
+      {active && (
+        <Link to={`/session/${active.id}`} className="cta">
+          <div>
+            <div className="cta-title">Resume workout</div>
+            <div className="cta-sub">
+              {active.exercises.length} exercises · started {startedAgo(active.startedAt)}
+            </div>
+          </div>
+          <ArrowRight size={22} />
+        </Link>
+      )}
+
+      <Link to="/generate" className={active ? 'cta secondary' : 'cta'}>
         <div>
           <div className="cta-title">Generate a workout</div>
           <div className="cta-sub">Pick a focus and how long you have</div>
         </div>
         <ArrowRight size={22} />
       </Link>
-      <button className="btn-manual">Build one manually</button>
+      <button className="btn-manual" onClick={build}>
+        Build one manually
+      </button>
 
       <section className="card roomy">
         <div className="card-head">

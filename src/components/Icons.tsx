@@ -31,3 +31,6 @@ export const Check = icon(<path d="m5 12 5 5 9-10" />, 2.4);
 export const HomeIcon = icon(<path d="M3 11 12 3l9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />, 1.8);
 export const Dumbbell = icon(<path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12" />, 1.8);
 export const Trend = icon(<path d="M3 17l6-6 4 4 8-9M15 6h6v6" />, 1.8);
+export const Plus = icon(<path d="M12 5v14M5 12h14" />);
+export const Close = icon(<path d="M6 6l12 12M18 6 6 18" />);
+export const ChevronUp = icon(<path d="m6 15 6-6 6 6" />);

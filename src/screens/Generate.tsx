@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Swap } from '../components/Icons';
+import { useActiveWorkout } from '../hooks/data';
+import { createWorkout, startWorkout } from '../db/workouts';
 import { durations, focusOptions, plan } from '../placeholder';
 import { selectOnFocus } from '../utils';
 
@@ -8,6 +10,25 @@ export default function Generate() {
   const [focus, setFocus] = useState<string[]>(['Legs', 'Core']);
   const [minutes, setMinutes] = useState(45);
   const [note, setNote] = useState('');
+  const navigate = useNavigate();
+  const active = useActiveWorkout();
+
+  // Until the real generator lands in Phase 5, "Start session" logs the sample plan shown here.
+  const startSample = async () => {
+    const w = await createWorkout({
+      source: 'generated',
+      plannedMinutes: minutes,
+      userNote: note.trim() || undefined,
+      exercises: plan.map((p, order) => ({
+        exerciseId: p.id,
+        order,
+        target: { sets: p.sets, repsLow: p.reps, repsHigh: p.reps },
+        sets: [],
+      })),
+    });
+    await startWorkout(w.id);
+    navigate(`/session/${w.id}`);
+  };
 
   const toggle = (name: string) =>
     setFocus((cur) => (cur.includes(name) ? cur.filter((n) => n !== name) : [...cur, name]));
@@ -79,9 +100,15 @@ export default function Generate() {
           ))}
         </section>
 
-        <Link to="/session" className="btn-outline-accent">
-          Start session
-        </Link>
+        {active ? (
+          <Link to={`/session/${active.id}`} className="btn-outline-accent">
+            Resume workout
+          </Link>
+        ) : (
+          <button className="btn-outline-accent" onClick={startSample}>
+            Start session
+          </button>
+        )}
       </div>
     </div>
   );

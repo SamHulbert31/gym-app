@@ -4,7 +4,7 @@ A personal workout generator and lifting tracker. It runs as an installable web 
 
 The full spec is in `BRIEF.md` and the approved mockups are in `design/`.
 
-**Status:** Phase 1 of 8 (scaffold). The four screens exist and look right on a phone but show sample data from the mockups. Real data, logging, the engine, sync and AI arrive in the later phases.
+**Status:** Phase 2 of 8 done. You can build a workout by hand, log it live (sets, weight, reps, rest timer), leave and resume it, and see a summary. It all saves to the phone's database (IndexedDB), so it works with no signal. Home's week, muscle balance and records, the Progress screen and the generator's plan are still sample data from the mockups until their phases. The weight engine, sync, Settings and AI come later.
 
 ## Run locally
 

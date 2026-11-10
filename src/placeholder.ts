@@ -28,19 +28,13 @@ export const records = [
 export const focusOptions = ['Legs', 'Core', 'Chest', 'Back', 'Shoulders', 'Arms', 'Full body'];
 export const durations = [30, 45, 60, 75];
 
+// Stand-in for the generator until Phase 5. Starting it logs these exercises with no weights.
 export const plan = [
-  { name: 'Leg press', detail: '4 × 10 at 165 kg · up 5 kg on last time' },
-  { name: 'Romanian deadlift', detail: '3 × 10 at 80 kg · same as last time' },
-  { name: 'Walking lunge', detail: '3 × 12 each side at 16 kg dumbbells' },
-  { name: 'Hanging knee raise', detail: '3 × 12 · bodyweight' },
-  { name: 'Cable crunch', detail: '3 × 15 at 35 kg · up 2.5 kg' },
-];
-
-export const sessionSets = [
-  { weight: '165', reps: '10', done: true },
-  { weight: '165', reps: '10', done: true },
-  { weight: '165', reps: '', done: false },
-  { weight: '165', reps: '', done: false },
+  { id: 'leg-press', sets: 4, reps: 10, name: 'Leg press', detail: '4 × 10 at 165 kg · up 5 kg on last time' },
+  { id: 'romanian-deadlift', sets: 3, reps: 10, name: 'Romanian deadlift', detail: '3 × 10 at 80 kg · same as last time' },
+  { id: 'walking-lunge', sets: 3, reps: 12, name: 'Walking lunge', detail: '3 × 12 each side at 16 kg dumbbells' },
+  { id: 'hanging-knee-raise', sets: 3, reps: 12, name: 'Hanging knee raise', detail: '3 × 12 · bodyweight' },
+  { id: 'cable-crunch', sets: 3, reps: 15, name: 'Cable crunch', detail: '3 × 15 at 35 kg · up 2.5 kg' },
 ];
 
 export const weeklyVolume = [9.8, 11.2, 7.4, 12.1, 10.6, 12.9, 8.3, 12.5];
