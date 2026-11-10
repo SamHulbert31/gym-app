@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Live workout session</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8F03C}a:hover{color:#DDF77A}
+</style>
+</helmet>
+<div style="width: 390px; height: 920px; box-sizing: border-box; background: #0E0F11; color: #F2F3F5; font-family: Inter, system-ui, sans-serif; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px">
+
+<div style="display: flex; align-items: center; justify-content: space-between">
+<a href="GymGenerate.dc.html" aria-label="Back to plan" style="width: 44px; height: 44px; margin-left: -12px; display: flex; align-items: center; justify-content: center; color: #F2F3F5">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"></path></svg>
+</a>
+<div style="font-size: 13px; color: #A0A6AE">Exercise 1 of 5</div>
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 16px">12:40</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+<div style="height: 4px; border-radius: 2px; background: #C8F03C"></div>
+<div style="height: 4px; border-radius: 2px; background: #26292E"></div>
+<div style="height: 4px; border-radius: 2px; background: #26292E"></div>
+<div style="height: 4px; border-radius: 2px; background: #26292E"></div>
+<div style="height: 4px; border-radius: 2px; background: #26292E"></div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 30px">Leg press</h1>
+<div style="font-size: 15px">Target 4 × 10 at 165 kg</div>
+<div style="font-size: 13px; color: #A0A6AE">Last time 160 kg × 10, 10, 10, 9</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: grid; grid-template-columns: 36px 1fr 1fr 48px; gap: 10px; font-size: 12px; color: #A0A6AE; padding: 0 4px">
+<div>Set</div><div>Weight, kg</div><div>Reps</div><div></div>
+</div>
+<sc-for list="{{sets}}" as="s" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: 36px 1fr 1fr 48px; gap: 10px; align-items: center; padding: 4px; border-radius: 14px; background: {{s.rowBg}}">
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 16px; text-align: center; color: {{s.numFg}}">{{s.n}}</div>
+<input aria-label="{{s.kgLabel}}" type="text" inputmode="decimal" value="{{s.kg}}" style="height: 48px; width: 100%; text-align: center; border-radius: 10px; border: 1px solid {{s.bd}}; background: #17191C; color: #F2F3F5; font: inherit; font-size: 17px; font-weight: 600; box-sizing: border-box">
+<input aria-label="{{s.repLabel}}" type="text" inputmode="numeric" value="{{s.reps}}" placeholder="10" style="height: 48px; width: 100%; text-align: center; border-radius: 10px; border: 1px solid {{s.bd}}; background: #17191C; color: #F2F3F5; font: inherit; font-size: 17px; font-weight: 600; box-sizing: border-box">
+<button aria-label="{{s.doneLabel}}" style="width: 48px; height: 48px; border-radius: 10px; border: 1px solid {{s.ckBd}}; background: {{s.ckBg}}; color: {{s.ckFg}}; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"></path></svg>
+</button>
+</div>
+</sc-for>
+</div>
+
+<div style="background: #17191C; border: 1px solid #26292E; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<div style="font-size: 13px; color: #A0A6AE">Rest</div>
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 20px">1:12</div>
+<button style="height: 44px; margin: -8px 0; padding: 0 4px; border: none; background: transparent; color: #C8F03C; font: inherit; font-size: 14px; font-weight: 600">Skip</button>
+</div>
+<div style="height: 6px; border-radius: 3px; background: #26292E"><div style="width: 40%; height: 6px; border-radius: 3px; background: #C8F03C"></div></div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<button style="height: 48px; border: 1px solid #3A3E45; border-radius: 12px; background: transparent; color: #F2F3F5; font: inherit; font-size: 14px; font-weight: 600">Add a set</button>
+<button style="height: 48px; border: 1px solid #3A3E45; border-radius: 12px; background: transparent; color: #F2F3F5; font: inherit; font-size: 14px; font-weight: 600">Swap exercise</button>
+</div>
+
+<div style="font-size: 13px; line-height: 1.5; color: #D5D8DC; background: #17191C; border: 1px solid #26292E; border-radius: 16px; padding: 14px 16px">You hit nearly every rep at 160 kg last time, so today moves to 165. If set 3 or 4 drops under 8 reps, this weight stays for next session.</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #A0A6AE">
+<div>Next: Romanian deadlift, 3 × 10 at 80 kg</div>
+<button style="height: 44px; padding: 0 0 0 8px; border: none; background: transparent; color: #F2A65A; font: inherit; font-size: 13px; font-weight: 600">Finish early</button>
+</div>
+
+<button style="height: 52px; border: none; border-radius: 14px; background: #C8F03C; color: #0E0F11; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 16px; font-weight: 700">Next exercise</button>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":920}}'>
+class Component extends DCLogic {
+renderVals() {
+var raw = [[1, '165', '10', 'done'], [2, '165', '10', 'done'], [3, '165', '', 'active'], [4, '165', '', 'todo']];
+var sets = raw.map(function (r) {
+var done = r[3] === 'done', active = r[3] === 'active';
+return {
+n: r[0], kg: r[1], reps: r[2],
+kgLabel: 'Set ' + r[0] + ' weight in kg', repLabel: 'Set ' + r[0] + ' reps', doneLabel: 'Mark set ' + r[0] + ' done',
+rowBg: active ? '#1D2014' : 'transparent',
+numFg: done ? '#C8F03C' : '#F2F3F5',
+bd: active ? '#C8F03C' : '#3A3E45',
+ckBg: done ? '#C8F03C' : 'transparent', ckBd: done ? '#C8F03C' : '#3A3E45', ckFg: done ? '#0E0F11' : '#A0A6AE'
+};
+});
+return { sets: sets };
+}
+}
+</script>
+</body>
+</html>

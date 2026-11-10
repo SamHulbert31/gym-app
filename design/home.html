@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Gym home dashboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8F03C}a:hover{color:#DDF77A}
+</style>
+</helmet>
+<div style="width: 390px; height: 920px; box-sizing: border-box; background: #0E0F11; color: #F2F3F5; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column">
+<div style="flex: 1; padding: 24px 20px 0; display: flex; flex-direction: column; gap: 14px">
+
+<div>
+<div style="font-size: 13px; color: #A0A6AE">Wednesday 11 November</div>
+<h1 style="margin: 2px 0 0; font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 30px">Ready to train?</h1>
+</div>
+
+<a href="GymGenerate.dc.html" style="display: flex; justify-content: space-between; align-items: center; height: 64px; padding: 0 20px; border-radius: 16px; background: #C8F03C; color: #0E0F11; text-decoration: none">
+<div>
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 18px">Generate a workout</div>
+<div style="font-size: 12px; color: #2F3A0C">Pick a focus and how long you have</div>
+</div>
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+</a>
+<button style="height: 48px; border: 1px solid #3A3E45; border-radius: 16px; background: transparent; color: #F2F3F5; font: inherit; font-size: 15px; font-weight: 600">Build one manually</button>
+
+<div style="background: #17191C; border: 1px solid #26292E; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 16px">This week</div>
+<div style="font-size: 13px; color: #A0A6AE">2 sessions · 12,450 kg lifted</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 6px">
+<div style="width: 100%; height: 32px; border-radius: 8px; background: {{d.bg}}; border: 1px solid {{d.bd}}; box-sizing: border-box"></div>
+<div style="font-size: 11px; color: #A0A6AE">{{d.l}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="background: #17191C; border: 1px solid #26292E; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 16px">Muscle balance</div>
+<div style="font-size: 13px; color: #A0A6AE">sets, last 14 days</div>
+</div>
+<sc-for list="{{muscles}}" as="m" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: 76px 1fr 22px; align-items: center; gap: 10px; font-size: 13px">
+<div style="color: #D5D8DC">{{m.n}}</div>
+<div style="height: 8px; border-radius: 4px; background: #26292E"><div style="height: 8px; border-radius: 4px; width: {{m.w}}; background: {{m.c}}"></div></div>
+<div style="font-weight: 600; text-align: right">{{m.v}}</div>
+</div>
+</sc-for>
+<div style="font-size: 13px; line-height: 1.45; color: #A0A6AE">Legs and core are behind. The next generated session will lean that way unless you choose otherwise.</div>
+</div>
+
+<div style="background: #17191C; border: 1px solid #26292E; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 16px">Recent records</div>
+<div style="display: flex; justify-content: space-between; font-size: 14px"><div style="color: #D5D8DC">Bench press</div><div style="font-weight: 600">82.5 kg × 5 <span style="color: #C8F03C">+2.5</span></div></div>
+<div style="display: flex; justify-content: space-between; font-size: 14px"><div style="color: #D5D8DC">Lat pulldown</div><div style="font-weight: 600">73 kg × 10 <span style="color: #C8F03C">+1 rep</span></div></div>
+</div>
+
+</div>
+
+<nav aria-label="Main" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #26292E; background: #121316; padding: 8px 0 14px; margin-top: 14px">
+<a href="GymHome.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; font-size: 11px; font-weight: 600; color: #C8F03C; text-decoration: none">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path></svg>
+Home</a>
+<a href="GymGenerate.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; font-size: 11px; font-weight: 500; color: #A0A6AE; text-decoration: none">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"></path></svg>
+Train</a>
+<a href="GymProgress.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; font-size: 11px; font-weight: 500; color: #A0A6AE; text-decoration: none">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-9M15 6h6v6"></path></svg>
+Progress</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":920}}'>
+class Component extends DCLogic {
+renderVals() {
+var labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+var done = [true, false, true, false, false, false, false];
+var days = labels.map(function (l, i) {
+return { l: l, bg: done[i] ? '#C8F03C' : 'transparent', bd: done[i] ? '#C8F03C' : '#3A3E45' };
+});
+var raw = [['Back', 16], ['Chest', 14], ['Arms', 10], ['Shoulders', 8], ['Legs', 6], ['Core', 3]];
+var muscles = raw.map(function (r) {
+return { n: r[0], v: r[1], w: Math.round(r[1] / 16 * 100) + '%', c: r[1] < 7 ? '#F2A65A' : '#C8F03C' };
+});
+return { days: days, muscles: muscles };
+}
+}
+</script>
+</body>
+</html>

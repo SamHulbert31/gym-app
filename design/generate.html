@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Generate a workout</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C8F03C}a:hover{color:#DDF77A}
+</style>
+</helmet>
+<div style="width: 390px; height: 920px; box-sizing: border-box; background: #0E0F11; color: #F2F3F5; font-family: Inter, system-ui, sans-serif; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px">
+
+<div style="display: flex; align-items: center; gap: 8px">
+<a href="GymHome.dc.html" aria-label="Back to home" style="width: 44px; height: 44px; margin-left: -12px; display: flex; align-items: center; justify-content: center; color: #F2F3F5">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"></path></svg>
+</a>
+<h1 style="margin: 0; font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 24px">New workout</h1>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #A0A6AE">What are we training?</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{focus}}" as="f" hint-placeholder-count="7">
+<button aria-pressed="{{f.on}}" onClick="{{f.toggle}}" style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid {{f.bd}}; background: {{f.bg}}; color: {{f.fg}}; font: inherit; font-size: 14px; font-weight: 600">{{f.n}}</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; color: #A0A6AE">How long do you have?</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #17191C; border: 1px solid #26292E; border-radius: 14px">
+<sc-for list="{{times}}" as="t" hint-placeholder-count="4">
+<button aria-pressed="{{t.on}}" onClick="{{t.pick}}" style="height: 44px; border: none; border-radius: 10px; background: {{t.bg}}; color: {{t.fg}}; font: inherit; font-size: 14px; font-weight: 600">{{t.n}}</button>
+</sc-for>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label for="gen-notes" style="font-size: 13px; color: #A0A6AE">Anything else?</label>
+<input id="gen-notes" type="text" value="Squat racks are busy tonight" style="height: 48px; padding: 0 14px; border-radius: 12px; border: 1px solid #3A3E45; background: #17191C; color: #F2F3F5; font: inherit; font-size: 15px; box-sizing: border-box">
+</div>
+
+<button style="height: 52px; border: none; border-radius: 14px; background: #C8F03C; color: #0E0F11; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 16px; font-weight: 700">Generate</button>
+
+<div style="background: #17191C; border: 1px solid #26292E; border-radius: 16px; padding: 6px 8px 6px 16px; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; align-items: baseline; padding: 10px 8px 6px 0">
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; font-weight: 700; font-size: 16px">Your session</div>
+<div style="font-size: 13px; color: #A0A6AE">5 exercises · about 44 min</div>
+</div>
+<sc-for list="{{plan}}" as="p" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 56px; border-top: 1px solid #26292E">
+<div>
+<div style="font-size: 15px; font-weight: 600">{{p.n}}</div>
+<div style="font-size: 12px; color: #A0A6AE">{{p.d}}</div>
+</div>
+<button aria-label="{{p.swap}}" style="width: 44px; height: 44px; flex-shrink: 0; border: none; background: transparent; color: #A0A6AE; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4-4 4M21 7H7M7 21l-4-4 4-4M3 17h14"></path></svg>
+</button>
+</div>
+</sc-for>
+</div>
+
+<a href="GymSession.dc.html" style="height: 52px; border-radius: 14px; border: 1px solid #C8F03C; color: #C8F03C; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 16px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center; box-sizing: border-box">Start session</a>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":920}}'>
+class Component extends DCLogic {
+renderVals() {
+var self = this;
+var st = this.state || {};
+var picked = st.picked || { Legs: true, Core: true };
+var time = st.time || '45 min';
+var focus = ['Legs', 'Core', 'Chest', 'Back', 'Shoulders', 'Arms', 'Full body'].map(function (n) {
+var on = !!picked[n];
+return {
+n: n, on: on ? 'true' : 'false',
+bg: on ? '#C8F03C' : 'transparent', fg: on ? '#0E0F11' : '#F2F3F5', bd: on ? '#C8F03C' : '#3A3E45',
+toggle: function () { var next = Object.assign({}, picked); next[n] = !on; self.setState({ picked: next }); }
+};
+});
+var times = ['30 min', '45 min', '60 min', '75 min'].map(function (n) {
+var on = n === time;
+return { n: n, on: on ? 'true' : 'false', bg: on ? '#C8F03C' : 'transparent', fg: on ? '#0E0F11' : '#D5D8DC', pick: function () { self.setState({ time: n }); } };
+});
+var plan = [
+['Leg press', '4 × 10 at 165 kg · up 5 kg on last time'],
+['Romanian deadlift', '3 × 10 at 80 kg · same as last time'],
+['Walking lunge', '3 × 12 each side at 16 kg dumbbells'],
+['Hanging knee raise', '3 × 12 · bodyweight'],
+['Cable crunch', '3 × 15 at 35 kg · up 2.5 kg']
+].map(function (r) { return { n: r[0], d: r[1], swap: 'Swap ' + r[0] }; });
+return { focus: focus, times: times, plan: plan };
+}
+}
+</script>
+</body>
+</html>
