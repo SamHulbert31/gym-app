@@ -49,7 +49,7 @@ export function muscleBalance(
 function sentence(lagging: Muscle[], total: number, days: number) {
   if (total === 0) return `No sets logged in the last ${days} days yet. Finish a workout and the balance shows here.`;
   if (lagging.length === 0) return 'Nicely balanced over the last two weeks.';
-  const names = lagging.map((m) => muscleLabel(m));
+  const names = lagging.map((m, i) => (i === 0 ? muscleLabel(m) : m));
   const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
   const verb = names.length === 1 ? 'is' : 'are';
   return `${list} ${verb} behind. The next generated session will lean that way unless you choose otherwise.`;

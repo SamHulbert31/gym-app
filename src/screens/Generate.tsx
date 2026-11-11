@@ -169,9 +169,10 @@ export default function Generate() {
           </div>
           {preselected && (
             <div className="caption">
-              {balance.lagging.map(muscleLabel).join(' and ')} preselected: behind over the last two weeks.
+              {balance.lagging.map((m, i) => (i === 0 ? muscleLabel(m) : m)).join(' and ')} preselected: behind over the last two weeks.
             </div>
           )}
+          {focus.length === 0 && <div className="caption">Pick one or more, or Full body.</div>}
         </div>
 
         <div className="field">

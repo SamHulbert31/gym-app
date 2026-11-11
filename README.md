@@ -4,17 +4,7 @@ A personal workout generator and lifting tracker. It runs as an installable web 
 
 The full spec is in `BRIEF.md` and the approved mockups are in `design/`.
 
-**Status:** Phase 7 of 8 done. With a Gemini key in Settings, Generate asks Gemini to choose the exercises (from your history, the note and the library); the engine still sets every weight and fits the time. Without a key, or if Gemini fails, the rule based generator takes over and says so.
-
-Phase 6: Settings is in (reach it from the gear on Home): GitHub sync to a private repo, export and import, rest and increment defaults, exercise settings, and About. See "One time setup" below.
-
-Phase 5: The generator builds a session from your focus, time and note: it prefers exercises you have logged, adds at most one new one, puts compound lifts first, fits the time budget, and suggests a weight for every lift. Rows can be swapped (with a "not available at my gym" switch), reordered, resized or removed, and it learns from what you log, swap away from and mark unavailable. It works with no AI key; Phase 7 adds the AI path.
-
-Phase 4: Home (this week, muscle balance, recent records), Progress (estimated 1RM, weekly volume, forecast, records) and a workout history list with read only detail all run on your logged data.
-
-Phase 3: The engine suggests a weight for every exercise from what was logged last time (double progression), writes the coaching line under the sets, marks personal records, and computes estimated one rep max, volume and muscle balance.
-
-Phase 2: You can build a workout by hand, log it live (sets, weight, reps, rest timer), leave and resume it, and see a summary. It all saves to the phone's database (IndexedDB), so it works with no signal. Home's week, muscle balance and records, the Progress screen and the generator's plan are still sample data from the mockups until their phases. The weight engine, sync, Settings and AI come later.
+**Status:** all eight phases are built. Generate or build a workout, log it live with a rest timer and weight suggestions, see progress and records, sync to a private GitHub repo, and optionally let Gemini pick the exercises. It installs to a phone home screen and works with no signal.
 
 ## Run locally
 
@@ -41,6 +31,14 @@ When a new version is deployed, the installed app shows an "Update available" pr
 ## Install on your phone
 
 Open the site in Safari (iPhone) or Chrome (Android), then **Share → Add to Home Screen** (iPhone) or **Install app** (Android). After the first visit it opens with no signal.
+
+## What is where
+
+- `src/engine/` is the plain maths: progression rules, estimated 1RM, records, muscle balance, forecast, the rule based generator and the time budget. Pure functions with unit tests (`npm test`).
+- `src/db/` is the on device store (Dexie / IndexedDB), the seed library and the workout operations.
+- `src/sync/` is the GitHub sync: file format, merge rules, the contents API client and the engine that ties them together.
+- `src/ai/` is the provider layer and the AI assisted generator. Another provider is one more file here.
+- `src/screens/` and `src/components/` are the UI, styled by `src/styles/app.css` with the tokens in `tokens.css`.
 
 ## One time setup in the app's Settings
 

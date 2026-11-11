@@ -60,7 +60,7 @@ describe('muscleBalance', () => {
     );
     expect(b.median).toBe(9);
     expect(b.lagging).toEqual(['legs', 'core']);
-    expect(b.sentence).toBe('Legs and Core are behind. The next generated session will lean that way unless you choose otherwise.');
+    expect(b.sentence).toBe('Legs and core are behind. The next generated session will lean that way unless you choose otherwise.');
   });
 
   it('words a single lagging muscle and the balanced case', () => {
