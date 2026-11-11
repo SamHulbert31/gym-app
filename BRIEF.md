@@ -282,3 +282,9 @@ Write a short `README.md` covering how to run locally, how deploy works, and the
 - Data written on the phone appears in the private repo, and a fresh install restores everything after entering the same settings.
 - With no AI key, generation still works through the rule based path.
 - No secrets in the repo.
+
+## 14. Additions
+
+**Name.** The app is called "Overload". Use it for the page title, the manifest name and short name, and the home screen label.
+
+**Icon.** The app icon is an SVG in `public/icon.svg`: background #0E0F11, a simple bold barbell mark in #C8F03C, no text, no gradients. The mark stays inside the centre 60 percent so it survives maskable cropping on Android and the rounded corners on iOS. Every icon size listed in section 3 is generated from it with `npm run icons`, and the favicon uses the same mark.

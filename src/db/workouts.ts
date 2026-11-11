@@ -1,3 +1,4 @@
+import { loadSuggestContext, suggestIn } from '../engine/apply';
 import { db, newId, nowISO } from './db';
 import type { Exercise, Muscle, SetLog, Workout, WorkoutExercise } from './types';
 
@@ -40,13 +41,22 @@ export const updateExercise = (id: string, index: number, change: (we: WorkoutEx
 
 export const findActiveWorkout = () => db.workouts.where('status').equals('active').filter(alive).first();
 
+// Starting fills in what the engine knows: a suggested weight and coaching line for every
+// exercise the user did not set a weight for, then one empty set row per target set.
 export async function startWorkout(id: string) {
-  const exercises = new Map((await db.exercises.toArray()).map((e) => [e.id, e]));
+  const [exerciseList, ctx] = await Promise.all([db.exercises.toArray(), loadSuggestContext()]);
+  const exercises = new Map(exerciseList.map((e) => [e.id, e]));
   await updateWorkout(id, (w) => {
     w.status = 'active';
-    w.startedAt = nowISO();
+    w.startedAt = ctx.now.toISOString();
     w.exercises.forEach((we, i) => {
       we.order = i;
+      const ex = exercises.get(we.exerciseId);
+      if (ex && we.target.weight === undefined) {
+        const s = suggestIn(ctx, ex, we.target, id);
+        we.target.weight = s.weight;
+        we.note = s.coaching;
+      }
       we.sets = Array.from({ length: we.target.sets }, (): SetLog => ({ weight: we.target.weight, done: false }));
     });
     const muscles = new Set<Muscle>();
@@ -84,16 +94,18 @@ export const newTarget = (ex: Exercise): WorkoutExercise => ({
   sets: [],
 });
 
-// The sets from the most recent finished workout that included this exercise.
-export async function lastTimeSets(exerciseId: string, excludeWorkoutId?: string): Promise<SetLog[] | undefined> {
-  const done = await db.workouts.where('status').equals('done').filter(alive).toArray();
-  done.sort((a, b) => (b.endedAt ?? '').localeCompare(a.endedAt ?? ''));
-  for (const w of done) {
-    if (w.id === excludeWorkoutId) continue;
-    const we = w.exercises.find((e) => e.exerciseId === exerciseId);
-    if (we && we.sets.length) return we.sets;
-  }
-  return undefined;
+// Swapping mid-session keeps done sets and re-suggests the weight for the sets still to do.
+export async function swapExercise(workoutId: string, index: number, to: Exercise) {
+  const ctx = await loadSuggestContext();
+  await updateExercise(workoutId, index, (e) => {
+    if (e.exerciseId === to.id) return;
+    e.swappedFromExerciseId ??= e.exerciseId;
+    e.exerciseId = to.id;
+    const s = suggestIn(ctx, to, e.target, workoutId);
+    e.target = { ...e.target, weight: s.weight };
+    e.note = s.coaching;
+    e.sets = e.sets.map((set) => (set.done ? set : { ...set, weight: s.weight }));
+  });
 }
 
 export async function createCustomExercise(init: Pick<Exercise, 'name' | 'primary' | 'equipment'>): Promise<Exercise> {

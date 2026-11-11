@@ -1,10 +1,12 @@
-# Gym App
+# Overload
 
 A personal workout generator and lifting tracker. It runs as an installable web app on a phone, is hosted free on GitHub Pages, keeps its data in a private GitHub repo, and uses an optional free Gemini API key for AI features. Nothing here costs money or needs a server.
 
 The full spec is in `BRIEF.md` and the approved mockups are in `design/`.
 
-**Status:** Phase 2 of 8 done. You can build a workout by hand, log it live (sets, weight, reps, rest timer), leave and resume it, and see a summary. It all saves to the phone's database (IndexedDB), so it works with no signal. Home's week, muscle balance and records, the Progress screen and the generator's plan are still sample data from the mockups until their phases. The weight engine, sync, Settings and AI come later.
+**Status:** Phase 3 of 8 done. The engine suggests a weight for every exercise from what was logged last time (double progression), writes the coaching line under the sets, marks personal records, and computes estimated one rep max, volume and muscle balance.
+
+Phase 2: You can build a workout by hand, log it live (sets, weight, reps, rest timer), leave and resume it, and see a summary. It all saves to the phone's database (IndexedDB), so it works with no signal. Home's week, muscle balance and records, the Progress screen and the generator's plan are still sample data from the mockups until their phases. The weight engine, sync, Settings and AI come later.
 
 ## Run locally
 
@@ -13,6 +15,7 @@ npm install
 npm run dev        # dev server with hot reload
 npm run build      # typecheck and production build into dist/
 npm run preview    # serve the production build (the service worker only runs here)
+npm test           # unit tests for the engine (progression rules, estimates, records, balance)
 ```
 
 Open the dev server on your phone by running `npm run dev -- --host` and visiting the address it prints. Use the browser's device toolbar at 390 × 844 and 360 px wide to check layouts.

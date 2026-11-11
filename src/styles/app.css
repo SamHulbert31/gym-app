@@ -552,6 +552,14 @@ input {
   color: var(--accent);
 }
 
+.set-num .pr {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  line-height: 1;
+  color: var(--accent);
+}
+
 .set-input {
   height: 48px;
   width: 100%;

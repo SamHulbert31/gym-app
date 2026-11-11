@@ -1,17 +1,18 @@
-import { useLiveQuery } from 'dexie-react-hooks';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import ExercisePicker from '../components/ExercisePicker';
 import { Check, ChevronLeft } from '../components/Icons';
 import NumInput from '../components/NumInput';
 import Sheet from '../components/Sheet';
-import { useExerciseMap, useMeta, useWorkout } from '../hooks/data';
+import { useExerciseHistory, useExerciseMap, useMeta, useWorkout } from '../hooks/data';
 import { useNow } from '../hooks/useNow';
 import { clearRest, useRest } from '../hooks/useRest';
 import { useWakeLock } from '../hooks/useWakeLock';
 import { nowISO } from '../db/db';
-import { discardWorkout, doneSetCount, finishWorkout, lastTimeSets, updateExercise } from '../db/workouts';
+import { discardWorkout, doneSetCount, finishWorkout, swapExercise, updateExercise } from '../db/workouts';
 import type { Exercise, SetLog, WorkoutExercise } from '../db/types';
+import { lastTimeText } from '../engine/format';
+import { bestsFor, setRecord } from '../engine/records';
 import { formatClock } from '../utils';
 
 const indexKey = (id: string) => `gym.sessionIndex.${id}`;
@@ -35,17 +36,6 @@ const repsText = (t: WorkoutExercise['target']) => (t.repsLow === t.repsHigh ? `
 const targetText = (t: WorkoutExercise['target']) =>
   `${t.sets} × ${repsText(t)}${t.weight ? ` at ${t.weight} kg` : ''}`;
 
-// "160 kg × 10, 10, 10, 9" when the weight was constant, else "160 × 10, 165 × 8".
-function lastTimeText(sets: SetLog[]) {
-  const weights = new Set(sets.map((s) => s.weight ?? 0));
-  const reps = (s: SetLog) => s.reps ?? '–';
-  if (weights.size === 1) {
-    const w = sets[0].weight;
-    return `${w ? `${w} kg × ` : ''}${sets.map(reps).join(', ')}${w ? '' : ' reps'}`;
-  }
-  return sets.map((s) => `${s.weight ?? 'BW'} × ${reps(s)}`).join(', ');
-}
-
 type Dialog = 'jump' | 'finish' | 'discard' | 'swap' | null;
 
 export default function Session() {
@@ -62,10 +52,19 @@ export default function Session() {
   useWakeLock(workout?.status === 'active');
 
   const count = workout?.exercises.length ?? 0;
-  const firstOpen = workout?.exercises.findIndex((we) => we.sets.some((s) => !s.done)) ?? 0;
-  const current = Math.min(Math.max(picked ?? storedIndex(id) ?? (firstOpen < 0 ? count - 1 : firstOpen), 0), Math.max(count - 1, 0));
+  // The exercise on screen is chosen once when the session opens (where it was left, else the
+  // first with an open set) and after that only moves when the user moves it. Finishing the last
+  // set of an exercise must not jump ahead on its own.
+  const initial = useRef<number>(undefined);
+  if (workout && initial.current === undefined) {
+    const firstOpen = workout.exercises.findIndex((we) => we.sets.some((s) => !s.done));
+    initial.current = storedIndex(id) ?? (firstOpen < 0 ? count - 1 : firstOpen);
+  }
+  const current = Math.min(Math.max(picked ?? initial.current ?? 0, 0), Math.max(count - 1, 0));
   const we = workout?.exercises[current];
-  const lastTime = useLiveQuery(() => (we ? lastTimeSets(we.exerciseId, id) : undefined), [we?.exerciseId, id]);
+  const history = useExerciseHistory(we?.exerciseId, id);
+  const lastTime = history?.[history.length - 1]?.sets;
+  const bests = history ? bestsFor(history) : undefined;
 
   if (workout === undefined || exercises === undefined) return null;
   if (workout === null) return <Navigate to="/" replace />;
@@ -121,16 +120,7 @@ export default function Session() {
       e.sets.push({ weight: last?.weight ?? e.target.weight, done: false });
     });
 
-  const swapTo = (to: Exercise) =>
-    updateExercise(id, current, (e) => {
-      if (e.exerciseId === to.id) return;
-      e.swappedFromExerciseId ??= e.exerciseId;
-      e.exerciseId = to.id;
-      // Weights picked for the old exercise do not carry over to sets not yet done.
-      e.target = { ...e.target, weight: undefined };
-      e.note = undefined;
-      e.sets = e.sets.map((s) => (s.done ? s : { ...s, weight: undefined }));
-    });
+  const swapTo = (to: Exercise) => swapExercise(id, current, to);
 
   const finish = async () => {
     if (doneSets === 0) {
@@ -189,7 +179,10 @@ export default function Session() {
                 data-set={i}
                 className={`set-grid set-row${s.done ? ' done' : ''}${i === activeSet ? ' active' : ''}`}
               >
-                <div className="set-num">{i + 1}</div>
+                <div className="set-num">
+                  {i + 1}
+                  {s.done && bests && setRecord(s, bests) && <span className="pr">PR</span>}
+                </div>
                 <NumInput
                   className="set-input"
                   decimal

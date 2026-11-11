@@ -1,17 +1,18 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   base: './',
+  test: { include: ['src/**/*.test.ts'] },
   plugins: [
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.svg', 'icon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Gym App',
-        short_name: 'Gym',
+        name: 'Overload',
+        short_name: 'Overload',
         description: 'Workout generator and lifting tracker',
         display: 'standalone',
         orientation: 'portrait',

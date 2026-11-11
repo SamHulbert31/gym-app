@@ -1,31 +1,31 @@
-// Renders the PWA icons into public/. Run with `npm run icons`.
+// Renders every icon size from public/icon.svg. Run with `npm run icons`.
+//
+// The mark in icon.svg sits inside the centre 60%, so the same drawing serves as the
+// regular icon, the Android maskable icon (which crops to a safe zone) and the iOS icon
+// (which rounds the corners). The favicon is the same mark enlarged, since a browser tab
+// neither crops nor rounds and the mark would otherwise be tiny.
 import sharp from 'sharp';
+import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-const out = join(dirname(fileURLToPath(import.meta.url)), '..', 'public');
-const BG = '#0E0F11';
-const ACCENT = '#C8F03C';
-// Same dumbbell glyph as the Train tab icon, drawn in a 24 unit box.
-const GLYPH = 'M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12';
+const pub = join(dirname(fileURLToPath(import.meta.url)), '..', 'public');
+const source = await readFile(join(pub, 'icon.svg'), 'utf8');
 
-// `glyphWidth` is the glyph's share of the canvas; maskable icons keep it inside the safe zone.
-const svg = (size, glyphWidth) => {
-  const scale = (size * glyphWidth) / 18;
-  const offset = size / 2 - 12 * scale;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-<rect width="${size}" height="${size}" fill="${BG}"/>
-<g transform="translate(${offset} ${offset}) scale(${scale})" fill="none" stroke="${ACCENT}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${GLYPH}"/></g>
-</svg>`;
-};
-
-const render = (name, size, glyphWidth) =>
-  sharp(Buffer.from(svg(size, glyphWidth))).png().toFile(join(out, name));
+const render = (name, size) =>
+  sharp(Buffer.from(source)).resize(size, size).png().toFile(join(pub, name));
 
 await Promise.all([
-  render('pwa-192x192.png', 192, 0.6),
-  render('pwa-512x512.png', 512, 0.6),
-  render('maskable-512x512.png', 512, 0.46),
-  render('apple-touch-icon.png', 180, 0.6),
+  render('pwa-192x192.png', 192),
+  render('pwa-512x512.png', 512),
+  render('maskable-512x512.png', 512),
+  render('apple-touch-icon.png', 180),
 ]);
+
+const favicon = source
+  .replace('<rect width="512" height="512" fill="#0E0F11"/>', '<rect width="512" height="512" rx="96" fill="#0E0F11"/>')
+  .replace('<g id="mark"', '<g id="mark" transform="translate(256 256) scale(1.45) translate(-256 -256)"')
+  .replace(/\s*<!--.*?-->/s, '');
+await writeFile(join(pub, 'favicon.svg'), favicon);
+
 console.log('icons written to public/');

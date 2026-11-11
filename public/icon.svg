@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#0E0F11"/>
+  <!-- Barbell mark. Everything sits inside the centre 60% (104..408 wide, 170..342 tall). -->
+  <g id="mark" fill="#C8F03C">
+    <rect x="104" y="238" width="304" height="36" rx="18"/>
+    <rect x="154" y="170" width="46" height="172" rx="14"/>
+    <rect x="312" y="170" width="46" height="172" rx="14"/>
+    <rect x="112" y="194" width="30" height="124" rx="11"/>
+    <rect x="370" y="194" width="30" height="124" rx="11"/>
+  </g>
+</svg>

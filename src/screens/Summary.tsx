@@ -1,5 +1,7 @@
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { useExerciseMap, useWorkout } from '../hooks/data';
+import { useAllWorkouts, useExerciseMap, useWorkout } from '../hooks/data';
+import { formatRecord } from '../engine/format';
+import { recordEvents } from '../engine/records';
 import { setVolume, workoutVolume } from '../engine/volume';
 import { doneSetCount } from '../db/workouts';
 import { formatKg } from '../utils';
@@ -8,8 +10,9 @@ export default function Summary() {
   const { id } = useParams();
   const workout = useWorkout(id);
   const exercises = useExerciseMap();
+  const all = useAllWorkouts();
 
-  if (workout === undefined || exercises === undefined) return null;
+  if (workout === undefined || exercises === undefined || all === undefined) return null;
   if (workout === null) return <Navigate to="/" replace />;
   if (workout.status !== 'done') return <Navigate to={`/session/${workout.id}`} replace />;
 
@@ -17,6 +20,7 @@ export default function Summary() {
     workout.startedAt && workout.endedAt
       ? Math.max(1, Math.round((new Date(workout.endedAt).getTime() - new Date(workout.startedAt).getTime()) / 60000))
       : 0;
+  const records = recordEvents(all).filter((e) => e.workoutId === workout.id);
   const date = new Date(workout.endedAt ?? workout.createdAt).toLocaleDateString('en-AU', {
     weekday: 'long',
     day: 'numeric',
@@ -50,6 +54,23 @@ export default function Summary() {
               <div className="tile-label">exercises</div>
             </div>
           </div>
+
+          {records.length > 0 && (
+            <section className="card">
+              <h2 className="card-title">Records</h2>
+              {records.map((r) => {
+                const f = formatRecord(r);
+                return (
+                  <div key={r.exerciseId} className="record-row">
+                    <div className="name">{exercises.get(r.exerciseId)?.name}</div>
+                    <div className="val">
+                      {f.value} <span className="gain">{f.gain}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </section>
+          )}
 
           <section className="card">
             <h2 className="card-title">What you did</h2>
