@@ -13,6 +13,7 @@ import { DEFAULT_PATH, DEFAULT_REPO, readSettings, syncConfig, writeSettings, ty
 import { exportJson, importJson, readFileText } from '../sync/file';
 import { GitHubError, testConnection } from '../sync/github';
 import { equipmentLabel, muscleLabel, selectOnFocus } from '../utils';
+import { AiError, DEFAULT_GEMINI_MODEL, geminiProvider } from '../ai/provider';
 
 const REST_CHOICES = [60, 90, 120, 150, 180];
 
@@ -52,6 +53,8 @@ export default function Settings() {
   const [showKey, setShowKey] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; text: string } | null>(null);
   const [testing, setTesting] = useState(false);
+  const [aiResult, setAiResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [aiTesting, setAiTesting] = useState(false);
   const [importResult, setImportResult] = useState<{ ok: boolean; text: string } | null>(null);
   const [editing, setEditing] = useState<Exercise | null>(null);
   const [query, setQuery] = useState('');
@@ -87,6 +90,22 @@ export default function Settings() {
       setTestResult({ ok: false, text: e instanceof GitHubError ? e.message : 'Could not reach GitHub.' });
     } finally {
       setTesting(false);
+    }
+  };
+
+  const testAi = async () => {
+    if (!s.geminiKey.trim()) {
+      setAiResult({ ok: false, text: 'Enter a Gemini API key first.' });
+      return;
+    }
+    setAiTesting(true);
+    try {
+      const reply = await geminiProvider(s.geminiKey, s.geminiModel).generate('Reply with the single word OK.');
+      setAiResult({ ok: true, text: `Gemini answered: ${reply.trim().slice(0, 40)}` });
+    } catch (e) {
+      setAiResult({ ok: false, text: e instanceof AiError ? e.message : 'Could not reach Gemini.' });
+    } finally {
+      setAiTesting(false);
     }
   };
 
@@ -164,7 +183,7 @@ export default function Settings() {
         </Section>
 
         <Section title="AI">
-          <p className="note">Optional. With a free Gemini key the generator can read your note properly. Without one, everything still works.</p>
+          <p className="note">Optional. With a free Gemini key, Generate asks Gemini to pick the exercises from your history and note. Without one, everything still works by rules. The key is stored only on this device and only training data is ever sent.</p>
           <Field id="gemini-key" label="Gemini API key">
             <div className="input-row">
               <input id="gemini-key" className="text-input" type={showKey ? 'text' : 'password'} autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={s.geminiKey} onChange={(e) => save({ geminiKey: e.target.value })} onFocus={selectOnFocus} />
@@ -174,8 +193,17 @@ export default function Settings() {
             </div>
           </Field>
           <Field id="gemini-model" label="Model name">
-            <input id="gemini-model" className="text-input" type="text" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={s.geminiModel} onChange={(e) => save({ geminiModel: e.target.value })} onFocus={selectOnFocus} placeholder="set when the AI layer arrives" />
+            <input id="gemini-model" className="text-input" type="text" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={s.geminiModel} onChange={(e) => save({ geminiModel: e.target.value })} onFocus={selectOnFocus} placeholder={DEFAULT_GEMINI_MODEL} />
+            <div className="caption">Blank uses {DEFAULT_GEMINI_MODEL}, which is on the free tier.</div>
           </Field>
+          <button className="btn-outline" disabled={aiTesting} onClick={testAi}>
+            {aiTesting ? 'Testing…' : 'Test'}
+          </button>
+          {aiResult && (
+            <p className={`note ${aiResult.ok ? 'ok' : 'bad'}`} role="status">
+              {aiResult.text}
+            </p>
+          )}
         </Section>
 
         <Section title="Training">

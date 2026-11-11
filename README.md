@@ -4,7 +4,9 @@ A personal workout generator and lifting tracker. It runs as an installable web 
 
 The full spec is in `BRIEF.md` and the approved mockups are in `design/`.
 
-**Status:** Phase 6 of 8 done. Settings is in (reach it from the gear on Home): GitHub sync to a private repo, export and import, rest and increment defaults, exercise settings, and About. See "One time setup" below.
+**Status:** Phase 7 of 8 done. With a Gemini key in Settings, Generate asks Gemini to choose the exercises (from your history, the note and the library); the engine still sets every weight and fits the time. Without a key, or if Gemini fails, the rule based generator takes over and says so.
+
+Phase 6: Settings is in (reach it from the gear on Home): GitHub sync to a private repo, export and import, rest and increment defaults, exercise settings, and About. See "One time setup" below.
 
 Phase 5: The generator builds a session from your focus, time and note: it prefers exercises you have logged, adds at most one new one, puts compound lifts first, fits the time budget, and suggests a weight for every lift. Rows can be swapped (with a "not available at my gym" switch), reordered, resized or removed, and it learns from what you log, swap away from and mark unavailable. It works with no AI key; Phase 7 adds the AI path.
 
@@ -52,7 +54,7 @@ Open Settings from the gear at the top of Home.
 
 After that the app syncs on open and when it comes back to the foreground, and pushes a few seconds after you finish a workout or change something outside a live session. It merges per record (newest wins), so two devices can both log. The status shows in Settings and as a word after the date on Home. If the token expires, Settings says so in plain words.
 
-**AI (optional):** a free Gemini API key and model name. Without a key the app is complete and generates workouts by rules. The AI layer itself arrives in Phase 7.
+**AI (optional):** get a free key at Google AI Studio and paste it into Settings → AI, then tap **Test**. The model defaults to `gemini-3.5-flash-lite` (free tier) and can be changed. Only training data is sent: the exercise library, what you have logged and how recently, swaps, sets per muscle and your last three sessions. Never the key or token. Without a key the app is complete and generates workouts by rules.
 
 **Data:** Export downloads the same JSON the repo holds. Import merges a file back in.
 

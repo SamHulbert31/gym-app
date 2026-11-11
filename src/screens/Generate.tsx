@@ -5,7 +5,10 @@ import { ChevronLeft, Plus, Swap } from '../components/Icons';
 import Sheet from '../components/Sheet';
 import SwapSheet from '../components/SwapSheet';
 import { useActiveWorkout, useAllWorkouts, useExerciseMap, useMeta } from '../hooks/data';
-import { createWorkout, startWorkout } from '../db/workouts';
+import { createCustomExercise, createWorkout, startWorkout } from '../db/workouts';
+import { generateWithAi } from '../ai/plan';
+import { AiError, geminiProvider } from '../ai/provider';
+import { readSettings } from '../sync/config';
 import type { Exercise, Muscle } from '../db/types';
 import { makeSuggestContext, suggestIn } from '../engine/apply';
 import { defaultReps } from '../engine/classify';
@@ -40,6 +43,8 @@ export default function Generate() {
   const [note, setNote] = useState('');
   const [items, setItems] = useState<PlanItem[] | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
+  const [busy, setBusy] = useState(false);
+  const [aiNote, setAiNote] = useState<string | null>(null);
 
   if (active === undefined || workouts === undefined || exercises === undefined) return null;
 
@@ -56,20 +61,36 @@ export default function Generate() {
     else setPicked(without.includes(value) ? without.filter((c) => c !== value) : [...without, value]);
   };
 
-  const run = () => {
-    setItems(
-      generatePlan({
-        focus: focus.includes('full') ? ['full'] : (focus as Muscle[]),
-        minutes,
-        note,
-        exercises: [...exercises.values()],
-        workouts,
-        restSeconds,
-        now,
-        avoid: items?.map((i) => i.exerciseId),
-        muscleSets: balance.sets,
-      }),
-    );
+  // With a Gemini key the AI chooses the exercises and the engine does the rest; on any failure,
+  // or without a key, the rule based generator makes the plan.
+  const run = async () => {
+    const base = {
+      focus: (focus.includes('full') ? ['full'] : (focus as Muscle[])) as Muscle[] | ['full'],
+      minutes,
+      note,
+      exercises: [...exercises.values()],
+      workouts,
+      restSeconds,
+      now,
+      avoid: items?.map((i) => i.exerciseId),
+    };
+    const settings = readSettings();
+    if (settings.geminiKey) {
+      setBusy(true);
+      try {
+        const plan = await generateWithAi(geminiProvider(settings.geminiKey, settings.geminiModel), { ...base, createExercise: createCustomExercise });
+        setItems(plan);
+        setAiNote('Planned by Gemini from your history and note.');
+        return;
+      } catch (e) {
+        setAiNote(`${e instanceof AiError ? e.message : 'Gemini could not help this time.'} This plan is by the rules instead.`);
+      } finally {
+        setBusy(false);
+      }
+    } else {
+      setAiNote(null);
+    }
+    setItems(generatePlan({ ...base, muscleSets: balance.sets }));
   };
 
   const rows = (items ?? []).flatMap((item, index) => {
@@ -179,8 +200,8 @@ export default function Generate() {
           />
         </div>
 
-        <button className="btn-primary" disabled={focus.length === 0} onClick={run}>
-          Generate
+        <button className="btn-primary" disabled={focus.length === 0 || busy} onClick={() => void run()}>
+          {busy ? 'Thinking…' : 'Generate'}
         </button>
 
         {items && (
@@ -191,6 +212,7 @@ export default function Generate() {
                 {rows.length} exercise{rows.length === 1 ? '' : 's'} · about {planMinutes(seconds)} min
               </div>
             </div>
+            {aiNote && <div className="caption plan-note">{aiNote}</div>}
             {rows.map((r) => (
               <div key={r.item.exerciseId} className="plan-row">
                 <button

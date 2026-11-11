@@ -79,7 +79,7 @@ function allocate(muscles: Muscle[], total: number): Record<Muscle, number> {
 
 // ---------- The generator ----------
 
-interface Chosen {
+export interface PlanPick {
   ex: Exercise;
   muscle: Muscle;
   order: number;
@@ -130,7 +130,7 @@ export function generatePlan(input: GenerateInput): PlanItem[] {
   };
 
   const taken = new Set<string>();
-  const picks: Chosen[] = [];
+  const picks: PlanPick[] = [];
   const filled = new Map(muscles.map((m) => [m, 0]));
   const pickFor = (m: Muscle): Exercise | undefined => {
     const k = filled.get(m) ?? 0;
@@ -174,8 +174,13 @@ export function generatePlan(input: GenerateInput): PlanItem[] {
     }
   }
 
-  // Compound lifts first, heavy ones before light, then by muscle priority.
-  const items = picks.sort(
+  const items = fitToBudget(orderCompoundFirst(picks), budget, rest);
+  return items.map((p) => ({ exerciseId: p.ex.id, target: { sets: p.sets, ...defaultReps(p.ex) } }));
+}
+
+// Compound lifts first, heavy ones before light, then by muscle priority.
+export const orderCompoundFirst = (picks: PlanPick[]) =>
+  [...picks].sort(
     (a, b) =>
       Number(isCompound(b.ex)) - Number(isCompound(a.ex)) ||
       Number(isHeavyCompound(b.ex)) - Number(isHeavyCompound(a.ex)) ||
@@ -183,8 +188,10 @@ export function generatePlan(input: GenerateInput): PlanItem[] {
       a.order - b.order,
   );
 
+// Makes a plan fit its time budget, whoever chose the exercises.
+export function fitToBudget(items: PlanPick[], budget: number, rest: number): PlanPick[] {
   const total = () => items.reduce((t, i) => t + exerciseSeconds(i.ex, i.sets, rest), 0);
-  const lastWhere = (pred: (p: Chosen) => boolean) => {
+  const lastWhere = (pred: (p: PlanPick) => boolean) => {
     for (let i = items.length - 1; i >= 0; i--) if (pred(items[i])) return i;
     return -1;
   };
@@ -230,7 +237,7 @@ export function generatePlan(input: GenerateInput): PlanItem[] {
     }
   }
 
-  return items.map((p) => ({ exerciseId: p.ex.id, target: { sets: p.sets, ...defaultReps(p.ex) } }));
+  return items;
 }
 
 // ---------- Swap alternatives ----------
