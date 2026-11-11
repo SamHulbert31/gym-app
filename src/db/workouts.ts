@@ -108,6 +108,10 @@ export async function swapExercise(workoutId: string, index: number, to: Exercis
   });
 }
 
+// "Not available at my gym": the exercise stops being suggested or offered anywhere.
+export const setUnavailable = (id: string, unavailable: boolean) =>
+  db.exercises.update(id, { unavailable: unavailable || undefined, updatedAt: nowISO() });
+
 export async function createCustomExercise(init: Pick<Exercise, 'name' | 'primary' | 'equipment'>): Promise<Exercise> {
   const now = nowISO();
   const ex: Exercise = { id: newId(), secondary: [], isCustom: true, createdAt: now, updatedAt: now, ...init };

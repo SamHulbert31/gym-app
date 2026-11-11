@@ -45,3 +45,22 @@ export const shortDate = (iso: string | Date, weekday = false) => {
 
 export const longDate = (d: Date, withYear = false) =>
   d.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', ...(withYear ? { year: 'numeric' } : {}) });
+
+// "4 × 8–12 at 165 kg · up 5 kg on last time", as on the generator's plan rows.
+export function planDetail(
+  target: { sets: number; repsLow: number; repsHigh: number },
+  ex: { equipment: string },
+  s: { weight?: number; reason: string; lastWeight?: number },
+) {
+  const reps = target.repsLow === target.repsHigh ? `${target.repsHigh}` : `${target.repsLow}–${target.repsHigh}`;
+  const load = s.weight ? ` at ${fmtWeight(s.weight)} kg${ex.equipment === 'dumbbell' ? ' dumbbells' : ''}` : '';
+  const why: Record<string, string> = {
+    up: s.weight !== undefined && s.lastWeight !== undefined ? `up ${fmtWeight(s.weight - s.lastWeight)} kg on last time` : '',
+    same: 'same as last time',
+    down: s.lastWeight !== undefined ? `down from ${fmtWeight(s.lastWeight)} kg` : '',
+    stale: 'a lighter restart after a break',
+    bodyweight: 'bodyweight',
+    none: ex.equipment === 'bodyweight' ? 'bodyweight' : 'choose your weight',
+  };
+  return [`${target.sets} × ${reps}${load}`, why[s.reason]].filter(Boolean).join(' · ');
+}

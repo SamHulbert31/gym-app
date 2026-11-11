@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
-import ExercisePicker from '../components/ExercisePicker';
 import { Check, ChevronLeft } from '../components/Icons';
 import NumInput from '../components/NumInput';
 import Sheet from '../components/Sheet';
+import SwapSheet from '../components/SwapSheet';
 import { useExerciseHistory, useExerciseMap, useMeta, useWorkout } from '../hooks/data';
 import { useNow } from '../hooks/useNow';
 import { clearRest, useRest } from '../hooks/useRest';
@@ -11,6 +11,7 @@ import { useWakeLock } from '../hooks/useWakeLock';
 import { nowISO } from '../db/db';
 import { discardWorkout, doneSetCount, finishWorkout, swapExercise, updateExercise } from '../db/workouts';
 import type { Exercise, SetLog, WorkoutExercise } from '../db/types';
+import { restSecondsFor } from '../engine/classify';
 import { lastTimeText } from '../engine/format';
 import { bestsFor, setRecord } from '../engine/records';
 import { formatClock } from '../utils';
@@ -106,7 +107,7 @@ export default function Session() {
     });
     const nextOpen = we.sets.findIndex((x, j) => j !== i && !x.done && j > i);
     const anyOpen = we.sets.some((x, j) => j !== i && !x.done);
-    if (anyOpen || !isLast) rest.start(meta?.restSeconds ?? 90);
+    if (anyOpen || !isLast) rest.start(ex ? restSecondsFor(ex, meta?.restSeconds ?? 90) : (meta?.restSeconds ?? 90));
     if (nextOpen >= 0) {
       requestAnimationFrame(() =>
         document.querySelector<HTMLInputElement>(`[data-set="${nextOpen}"] input`)?.focus(),
@@ -299,11 +300,11 @@ export default function Session() {
         </Sheet>
       )}
 
-      {dialog === 'swap' && (
-        <ExercisePicker
-          mode="swap"
-          initialMuscle={ex?.primary}
-          onPick={swapTo}
+      {dialog === 'swap' && ex && (
+        <SwapSheet
+          current={ex}
+          excludeIds={workout.exercises.map((e) => e.exerciseId)}
+          onSwap={swapTo}
           onClose={() => setDialog(null)}
         />
       )}

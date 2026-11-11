@@ -1,6 +1,6 @@
 // Glue between the pure engine and the database.
 import { db } from '../db/db';
-import type { Exercise, Workout } from '../db/types';
+import type { Exercise, Meta, Workout } from '../db/types';
 import { exerciseHistory } from './history';
 import { DEFAULT_INCREMENTS, suggestWeight, type Increments, type RepRange, type Suggestion } from './progression';
 
@@ -10,9 +10,15 @@ export interface SuggestContext {
   now: Date;
 }
 
+export const makeSuggestContext = (workouts: Workout[], meta: Pick<Meta, 'increments'> | undefined, now = new Date()): SuggestContext => ({
+  workouts,
+  increments: { ...DEFAULT_INCREMENTS, ...meta?.increments },
+  now,
+});
+
 export async function loadSuggestContext(): Promise<SuggestContext> {
   const [workouts, meta] = await Promise.all([db.workouts.toArray(), db.meta.get('meta')]);
-  return { workouts, increments: { ...DEFAULT_INCREMENTS, ...meta?.increments }, now: new Date() };
+  return makeSuggestContext(workouts, meta);
 }
 
 // The suggestion for an exercise about to be done in `workoutId`, which is left out of the history.

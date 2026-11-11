@@ -4,7 +4,9 @@ A personal workout generator and lifting tracker. It runs as an installable web 
 
 The full spec is in `BRIEF.md` and the approved mockups are in `design/`.
 
-**Status:** Phase 4 of 8 done. Home (this week, muscle balance, recent records), Progress (estimated 1RM, weekly volume, forecast, records) and a workout history list with read only detail all run on your logged data.
+**Status:** Phase 5 of 8 done. The generator builds a session from your focus, time and note: it prefers exercises you have logged, adds at most one new one, puts compound lifts first, fits the time budget, and suggests a weight for every lift. Rows can be swapped (with a "not available at my gym" switch), reordered, resized or removed, and it learns from what you log, swap away from and mark unavailable. It works with no AI key; Phase 7 adds the AI path.
+
+Phase 4: Home (this week, muscle balance, recent records), Progress (estimated 1RM, weekly volume, forecast, records) and a workout history list with read only detail all run on your logged data.
 
 Phase 3: The engine suggests a weight for every exercise from what was logged last time (double progression), writes the coaching line under the sets, marks personal records, and computes estimated one rep max, volume and muscle balance.
 
