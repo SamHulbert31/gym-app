@@ -1,4 +1,5 @@
 import { loadSuggestContext, suggestIn } from '../engine/apply';
+import { cancelPush, schedulePush } from '../sync';
 import { db, newId, nowISO } from './db';
 import type { Exercise, Muscle, SetLog, Workout, WorkoutExercise } from './types';
 
@@ -19,18 +20,22 @@ export async function createWorkout(init: Partial<Workout> = {}): Promise<Workou
     ...init,
   };
   await db.workouts.add(workout);
+  schedulePush();
   return workout;
 }
 
 // Read, change, write in one transaction so quick consecutive edits never overwrite each other.
-export function updateWorkout(id: string, change: (w: Workout) => void) {
-  return db.transaction('rw', db.workouts, async () => {
+// Changes outside a live session are pushed; set logging during one waits until it ends.
+export async function updateWorkout(id: string, change: (w: Workout) => void) {
+  const status = await db.transaction('rw', db.workouts, async () => {
     const w = await db.workouts.get(id);
-    if (!w) return;
+    if (!w) return undefined;
     change(w);
     w.updatedAt = nowISO();
     await db.workouts.put(w);
+    return w.status;
   });
+  if (status && status !== 'active') schedulePush();
 }
 
 export const updateExercise = (id: string, index: number, change: (we: WorkoutExercise) => void) =>
@@ -66,6 +71,8 @@ export async function startWorkout(id: string) {
     });
     if (!w.focus.length) w.focus = [...muscles];
   });
+  // Nothing is pushed during a live session; finishing it pushes everything.
+  cancelPush();
 }
 
 // Finishing keeps only what was actually performed.
@@ -80,10 +87,12 @@ export async function finishWorkout(id: string) {
   });
 }
 
-export const discardWorkout = (id: string) =>
-  updateWorkout(id, (w) => {
+export async function discardWorkout(id: string) {
+  await updateWorkout(id, (w) => {
     w.deletedAt = nowISO();
   });
+  schedulePush();
+}
 
 export const doneSetCount = (w: Workout) => w.exercises.reduce((n, we) => n + we.sets.filter((s) => s.done).length, 0);
 
@@ -108,13 +117,30 @@ export async function swapExercise(workoutId: string, index: number, to: Exercis
   });
 }
 
-// "Not available at my gym": the exercise stops being suggested or offered anywhere.
-export const setUnavailable = (id: string, unavailable: boolean) =>
-  db.exercises.update(id, { unavailable: unavailable || undefined, updatedAt: nowISO() });
+// Exercise settings: "not available at my gym" (it stops being suggested or offered anywhere)
+// and the per exercise weight increment that overrides the equipment default.
+export async function updateExerciseSettings(id: string, patch: { unavailable?: boolean; increment?: number }) {
+  const changes: Partial<Exercise> = { updatedAt: nowISO() };
+  if ('unavailable' in patch) changes.unavailable = patch.unavailable || undefined;
+  if ('increment' in patch) changes.increment = patch.increment && patch.increment > 0 ? patch.increment : undefined;
+  await db.exercises.update(id, changes);
+  schedulePush();
+}
+
+export const setUnavailable = (id: string, unavailable: boolean) => updateExerciseSettings(id, { unavailable });
+
+// Custom exercises are deleted with a tombstone, so the deletion reaches other devices and
+// past workouts can still show the name.
+export async function deleteCustomExercise(id: string) {
+  const now = nowISO();
+  await db.exercises.update(id, { deletedAt: now, updatedAt: now });
+  schedulePush();
+}
 
 export async function createCustomExercise(init: Pick<Exercise, 'name' | 'primary' | 'equipment'>): Promise<Exercise> {
   const now = nowISO();
   const ex: Exercise = { id: newId(), secondary: [], isCustom: true, createdAt: now, updatedAt: now, ...init };
   await db.exercises.add(ex);
+  schedulePush();
   return ex;
 }

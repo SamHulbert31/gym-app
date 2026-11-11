@@ -4,7 +4,9 @@ A personal workout generator and lifting tracker. It runs as an installable web 
 
 The full spec is in `BRIEF.md` and the approved mockups are in `design/`.
 
-**Status:** Phase 5 of 8 done. The generator builds a session from your focus, time and note: it prefers exercises you have logged, adds at most one new one, puts compound lifts first, fits the time budget, and suggests a weight for every lift. Rows can be swapped (with a "not available at my gym" switch), reordered, resized or removed, and it learns from what you log, swap away from and mark unavailable. It works with no AI key; Phase 7 adds the AI path.
+**Status:** Phase 6 of 8 done. Settings is in (reach it from the gear on Home): GitHub sync to a private repo, export and import, rest and increment defaults, exercise settings, and About. See "One time setup" below.
+
+Phase 5: The generator builds a session from your focus, time and note: it prefers exercises you have logged, adds at most one new one, puts compound lifts first, fits the time budget, and suggests a weight for every lift. Rows can be swapped (with a "not available at my gym" switch), reordered, resized or removed, and it learns from what you log, swap away from and mark unavailable. It works with no AI key; Phase 7 adds the AI path.
 
 Phase 4: Home (this week, muscle balance, recent records), Progress (estimated 1RM, weekly volume, forecast, records) and a workout history list with read only detail all run on your logged data.
 
@@ -40,9 +42,18 @@ Open the site in Safari (iPhone) or Chrome (Android), then **Share → Add to Ho
 
 ## One time setup in the app's Settings
 
-The Settings screen arrives in Phase 6. Once it exists, you enter these once:
+Open Settings from the gear at the top of Home.
 
-- **Sync:** GitHub owner, repo name (default `app-data`), file path (default `gym-app/data.json`), and a fine grained personal access token with **Contents: read and write** on that one private repo only.
-- **AI (optional):** a free Gemini API key and model name. Without a key the app is complete and generates workouts by rules.
+**Sync** keeps a durable copy of your data as one JSON file in a private GitHub repo you own, and lets a second device (or a fresh install) pick everything up.
 
-Tokens and keys are stored only in this device's `localStorage`. They are never written to the repo, the synced data file, or any log.
+1. On GitHub, create a **private** repo, for example `app-data`. It can be empty.
+2. Create a **fine grained personal access token** (GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens): pick that one repo under *Repository access*, and under *Repository permissions* give **Contents: Read and write**. Nothing else. Set an expiry you are happy to renew.
+3. In the app's Settings → Sync, enter your GitHub username as the owner, the repo name, the file path (default `gym-app/data.json`), and the token. Tap **Test connection**, then **Sync now**.
+
+After that the app syncs on open and when it comes back to the foreground, and pushes a few seconds after you finish a workout or change something outside a live session. It merges per record (newest wins), so two devices can both log. The status shows in Settings and as a word after the date on Home. If the token expires, Settings says so in plain words.
+
+**AI (optional):** a free Gemini API key and model name. Without a key the app is complete and generates workouts by rules. The AI layer itself arrives in Phase 7.
+
+**Data:** Export downloads the same JSON the repo holds. Import merges a file back in.
+
+Tokens and keys are stored only in this device's `localStorage`. They are never written to the repo, the synced data file, or any log or error message.

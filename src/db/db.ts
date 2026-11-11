@@ -50,3 +50,10 @@ export async function initDb() {
     // Best effort only.
   }
 }
+
+// Training settings that sync (rest default, increments). lastSync is set by the sync engine itself.
+export async function updateMeta(patch: Partial<Pick<Meta, 'restSeconds' | 'increments'>>) {
+  await db.meta.update('meta', { ...patch, updatedAt: nowISO() });
+  const { schedulePush } = await import('../sync');
+  schedulePush();
+}

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight } from '../components/Icons';
+import { ArrowRight, Gear } from '../components/Icons';
+import SyncDot from '../components/SyncDot';
 import RecordRows from '../components/RecordRows';
 import { useActiveWorkout, useAllWorkouts, useExerciseMap } from '../hooks/data';
 import { createWorkout } from '../db/workouts';
@@ -41,9 +42,17 @@ export default function Home() {
 
   return (
     <div className="page">
-      <div className="title-block">
-        <div className="caption">{today}</div>
-        <h1 className="h1">Ready to train?</h1>
+      <div className="home-head">
+        <div className="title-block">
+          <div className="caption">
+            {today}
+            <SyncDot />
+          </div>
+          <h1 className="h1">Ready to train?</h1>
+        </div>
+        <Link to="/settings" className="icon-btn settings-btn" aria-label="Settings">
+          <Gear size={22} />
+        </Link>
       </div>
 
       {active && (
