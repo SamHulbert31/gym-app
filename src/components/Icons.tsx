@@ -34,3 +34,4 @@ export const Trend = icon(<path d="M3 17l6-6 4 4 8-9M15 6h6v6" />, 1.8);
 export const Plus = icon(<path d="M12 5v14M5 12h14" />);
 export const Close = icon(<path d="M6 6l12 12M18 6 6 18" />);
 export const ChevronUp = icon(<path d="m6 15 6-6 6 6" />);
+export const ChevronRight = icon(<path d="m9 5 7 7-7 7" />);

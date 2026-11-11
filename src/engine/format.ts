@@ -25,3 +25,23 @@ export function formatRecord(e: RecordEvent): { value: string; gain: string } {
       return { value: `${e.value} kg e1RM`, gain: `+${e.delta}` };
   }
 }
+
+// Estimates and changes: one decimal. 96 -> "96", 96.30000001 -> "96.3"
+export const fmtNum = (n: number) => String(Number(n.toFixed(1)));
+
+// Weights on the bar keep quarter steps: 83.75 stays 83.75.
+export const fmtWeight = (n: number) => String(Number(n.toFixed(2)));
+
+export const fmtKg = (n: number) => `${fmtNum(n)} kg`;
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// "11 Nov", or "Wed 11 Nov" with the weekday.
+export const shortDate = (iso: string | Date, weekday = false) => {
+  const d = new Date(iso);
+  return `${weekday ? WEEKDAYS[d.getDay()] + ' ' : ''}${d.getDate()} ${MONTHS[d.getMonth()]}`;
+};
+
+export const longDate = (d: Date, withYear = false) =>
+  d.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', ...(withYear ? { year: 'numeric' } : {}) });

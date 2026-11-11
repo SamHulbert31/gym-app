@@ -695,6 +695,14 @@ input {
   white-space: nowrap;
 }
 
+.tile {
+  min-width: 0;
+}
+
+.tile-val.sm {
+  font-size: 18px;
+}
+
 @media (max-width: 380px) {
   .tile {
     padding: 12px 10px;
@@ -702,6 +710,10 @@ input {
 
   .tile-val {
     font-size: 19px;
+  }
+
+  .tile-val.sm {
+    font-size: 15px;
   }
 }
 
@@ -987,6 +999,33 @@ button:disabled {
 
 .empty-note {
   padding: 16px 0;
+}
+
+/* ---------- History ---------- */
+
+.history-link {
+  min-height: 48px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.history-list {
+  padding: 4px 16px;
+  gap: 0;
+}
+
+.history-row {
+  min-height: 64px;
+}
+
+.history-row:last-child {
+  border-bottom: none;
 }
 
 /* ---------- Summary ---------- */

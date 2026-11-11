@@ -4,7 +4,9 @@ A personal workout generator and lifting tracker. It runs as an installable web 
 
 The full spec is in `BRIEF.md` and the approved mockups are in `design/`.
 
-**Status:** Phase 3 of 8 done. The engine suggests a weight for every exercise from what was logged last time (double progression), writes the coaching line under the sets, marks personal records, and computes estimated one rep max, volume and muscle balance.
+**Status:** Phase 4 of 8 done. Home (this week, muscle balance, recent records), Progress (estimated 1RM, weekly volume, forecast, records) and a workout history list with read only detail all run on your logged data.
+
+Phase 3: The engine suggests a weight for every exercise from what was logged last time (double progression), writes the coaching line under the sets, marks personal records, and computes estimated one rep max, volume and muscle balance.
 
 Phase 2: You can build a workout by hand, log it live (sets, weight, reps, rest timer), leave and resume it, and see a summary. It all saves to the phone's database (IndexedDB), so it works with no signal. Home's week, muscle balance and records, the Progress screen and the generator's plan are still sample data from the mockups until their phases. The weight engine, sync, Settings and AI come later.
 

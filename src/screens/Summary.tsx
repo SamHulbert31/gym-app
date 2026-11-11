@@ -1,10 +1,9 @@
 import { Link, Navigate, useParams } from 'react-router-dom';
+import RecordRows from '../components/RecordRows';
+import WorkoutStats from '../components/WorkoutStats';
 import { useAllWorkouts, useExerciseMap, useWorkout } from '../hooks/data';
-import { formatRecord } from '../engine/format';
 import { recordEvents } from '../engine/records';
-import { setVolume, workoutVolume } from '../engine/volume';
-import { doneSetCount } from '../db/workouts';
-import { formatKg } from '../utils';
+import { setVolume } from '../engine/volume';
 
 export default function Summary() {
   const { id } = useParams();
@@ -16,10 +15,6 @@ export default function Summary() {
   if (workout === null) return <Navigate to="/" replace />;
   if (workout.status !== 'done') return <Navigate to={`/session/${workout.id}`} replace />;
 
-  const minutes =
-    workout.startedAt && workout.endedAt
-      ? Math.max(1, Math.round((new Date(workout.endedAt).getTime() - new Date(workout.startedAt).getTime()) / 60000))
-      : 0;
   const records = recordEvents(all).filter((e) => e.workoutId === workout.id);
   const date = new Date(workout.endedAt ?? workout.createdAt).toLocaleDateString('en-AU', {
     weekday: 'long',
@@ -36,39 +31,12 @@ export default function Summary() {
             <h1 className="h1">Workout done</h1>
           </div>
 
-          <div className="tiles two">
-            <div className="tile">
-              <div className="tile-val">{minutes} min</div>
-              <div className="tile-label">duration</div>
-            </div>
-            <div className="tile">
-              <div className="tile-val">{formatKg(workoutVolume(workout))}</div>
-              <div className="tile-label">volume</div>
-            </div>
-            <div className="tile">
-              <div className="tile-val">{doneSetCount(workout)}</div>
-              <div className="tile-label">sets</div>
-            </div>
-            <div className="tile">
-              <div className="tile-val">{workout.exercises.length}</div>
-              <div className="tile-label">exercises</div>
-            </div>
-          </div>
+          <WorkoutStats workout={workout} />
 
           {records.length > 0 && (
             <section className="card">
               <h2 className="card-title">Records</h2>
-              {records.map((r) => {
-                const f = formatRecord(r);
-                return (
-                  <div key={r.exerciseId} className="record-row">
-                    <div className="name">{exercises.get(r.exerciseId)?.name}</div>
-                    <div className="val">
-                      {f.value} <span className="gain">{f.gain}</span>
-                    </div>
-                  </div>
-                );
-              })}
+              <RecordRows events={records} exercises={exercises} />
             </section>
           )}
 

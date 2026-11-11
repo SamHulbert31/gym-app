@@ -99,3 +99,16 @@ export function recordEvents(workouts: Workout[]): RecordEvent[] {
 const KIND_RANK: Record<RecordKind, number> = { weight: 3, reps: 2, e1rm: 1 };
 // Higher priority kind first; within a kind, the bigger improvement.
 const rank = (b: Beat) => KIND_RANK[b.kind] * 1e6 + b.delta;
+
+// The most recent record of each exercise, newest first: what Home shows.
+export function latestRecords(events: RecordEvent[], limit = 3): RecordEvent[] {
+  const seen = new Set<string>();
+  const out: RecordEvent[] = [];
+  for (const e of [...events].sort((a, b) => b.date.localeCompare(a.date))) {
+    if (seen.has(e.exerciseId)) continue;
+    seen.add(e.exerciseId);
+    out.push(e);
+    if (out.length === limit) break;
+  }
+  return out;
+}
