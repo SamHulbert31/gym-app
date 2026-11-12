@@ -4,7 +4,7 @@ import { ChevronLeft } from '../components/Icons';
 import NumInput from '../components/NumInput';
 import Sheet from '../components/Sheet';
 import { updateMeta } from '../db/db';
-import { EQUIPMENT, type Exercise } from '../db/types';
+import { ARM_PARTS, EQUIPMENT, type Exercise } from '../db/types';
 import { deleteCustomExercise, updateExerciseSettings } from '../db/workouts';
 import { incrementFor } from '../engine/progression';
 import { useExerciseMap, useMeta } from '../hooks/data';
@@ -12,7 +12,8 @@ import { syncEngine, useSyncState } from '../sync';
 import { DEFAULT_PATH, DEFAULT_REPO, readSettings, syncConfig, writeSettings, type DeviceSettings } from '../sync/config';
 import { exportJson, importJson, readFileText } from '../sync/file';
 import { GitHubError, testConnection } from '../sync/github';
-import { equipmentLabel, muscleLabel, selectOnFocus } from '../utils';
+import { equipmentLabel, exerciseMuscleLabel, partLabel, selectOnFocus } from '../utils';
+import { armPart } from '../engine/classify';
 import { AiError, DEFAULT_GEMINI_MODEL, geminiProvider } from '../ai/provider';
 
 const REST_CHOICES = [60, 90, 120, 150, 180];
@@ -249,7 +250,7 @@ export default function Settings() {
                   <span>
                     <span className="plan-name">{e.name}</span>
                     <span className="plan-detail">
-                      {muscleLabel(e.primary)} · {equipmentLabel(e.equipment)}
+                      {exerciseMuscleLabel(e)} · {equipmentLabel(e.equipment)}
                       {e.increment ? ` · ${e.increment} kg steps` : ''}
                       {e.unavailable ? ' · not available' : ''}
                     </span>
@@ -267,7 +268,7 @@ export default function Settings() {
                 <button key={e.id} className="list-row" onClick={() => setEditing(e)}>
                   <span>
                     <span className="plan-name">{e.name}</span>
-                    <span className="plan-detail">{muscleLabel(e.primary)} · {equipmentLabel(e.equipment)}</span>
+                    <span className="plan-detail">{exerciseMuscleLabel(e)} · {equipmentLabel(e.equipment)}</span>
                   </span>
                 </button>
               ))}
@@ -282,7 +283,7 @@ export default function Settings() {
                 <div key={e.id} className="list-row">
                   <span>
                     <span className="plan-name">{e.name}</span>
-                    <span className="plan-detail">{muscleLabel(e.primary)} · {equipmentLabel(e.equipment)}</span>
+                    <span className="plan-detail">{exerciseMuscleLabel(e)} · {equipmentLabel(e.equipment)}</span>
                   </span>
                   <button className="btn-text accent" onClick={() => void updateExerciseSettings(e.id, { unavailable: false })}>
                     Available again
@@ -321,7 +322,7 @@ export default function Settings() {
       {live && (
         <Sheet title={live.name} onClose={() => setEditing(null)}>
           <div className="caption">
-            {muscleLabel(live.primary)} · {equipmentLabel(live.equipment)}
+            {exerciseMuscleLabel(live)} · {equipmentLabel(live.equipment)}
             {live.isCustom ? ' · custom' : ''}
           </div>
           <label className="target-field">
@@ -335,6 +336,18 @@ export default function Settings() {
               onChange={(n) => void updateExerciseSettings(live.id, { increment: n })}
             />
           </label>
+          {live.primary === 'arms' && (
+            <div className="field">
+              <div className="caption">Counts towards</div>
+              <div className="chips">
+                {ARM_PARTS.map((p) => (
+                  <button key={p} className="chip" aria-pressed={armPart(live) === p} onClick={() => void updateExerciseSettings(live.id, { part: p })}>
+                    {partLabel(p)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <button className="switch-row" role="switch" aria-checked={!!live.unavailable} onClick={() => void updateExerciseSettings(live.id, { unavailable: !live.unavailable })}>
             <span>Not available at my gym</span>
             <span className="switch" aria-hidden="true" />

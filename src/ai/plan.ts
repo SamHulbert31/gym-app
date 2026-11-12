@@ -1,6 +1,6 @@
 import { EQUIPMENT, MUSCLES, type Equipment, type Exercise, type Muscle, type Workout } from '../db/types';
 import { muscleBalance } from '../engine/balance';
-import { defaultReps, isCompound } from '../engine/classify';
+import { armPart, defaultReps, isCompound } from '../engine/classify';
 import { fitToBudget, orderCompoundFirst, type PlanItem, type PlanPick } from '../engine/generate';
 import { doneWorkouts, workoutDate } from '../engine/history';
 import { buildUsage } from '../engine/usage';
@@ -89,11 +89,12 @@ export function buildPrompt(input: AiPlanInput): string {
     '- Never use the exercises marked unavailable, and avoid ones the lifter swapped away from.',
     '- Respect the note: if equipment is busy or something hurts, work around it.',
     `- Fit the time: about ${Math.max(3, Math.min(8, Math.round(input.minutes / 10)))} exercises of 3 to 4 sets for ${input.minutes} minutes.`,
+    '- When arms are trained, balance biceps and triceps work, favouring the side that is behind.',
     '- Give each exercise sets and a rep range (repsLow to repsHigh).',
     '- Only if nothing in the library fits a need, add one new exercise by name with its primary muscle and equipment, and no id.',
     input.avoid?.length ? `- The previous plan used: ${input.avoid.join(', ')}. Offer something different.` : '',
     '',
-    `Sets per muscle in the last 14 days: ${MUSCLES.map((m) => `${m} ${balance.sets[m]}`).join(', ')}.${balance.lagging.length ? ` Lagging: ${balance.lagging.join(', ')}.` : ''}`,
+    `Sets per muscle in the last 14 days: ${MUSCLES.map((m) => `${m} ${balance.sets[m]}`).join(', ')} (arms: biceps ${balance.armParts.biceps}, triceps ${balance.armParts.triceps}).${balance.lagging.length ? ` Lagging: ${balance.lagging.join(', ')}.` : ''}${balance.laggingPart ? ` Within arms, ${balance.laggingPart} are behind.` : ''}`,
     '',
     `Logged exercises (id, times, recency): ${logged.length ? logged.join('; ') : 'none yet, this is a new lifter'}.`,
     `Swapped away from: ${swapped.length ? swapped.join(', ') : 'none'}.`,
@@ -101,7 +102,7 @@ export function buildPrompt(input: AiPlanInput): string {
     `Last sessions: ${recent.length ? recent.join(' | ') : 'none'}.`,
     '',
     'Library (id | name | primary muscle | equipment):',
-    ...available.map((e) => `${e.id} | ${e.name} | ${e.primary} | ${e.equipment}`),
+    ...available.map((e) => `${e.id} | ${e.name} | ${e.primary}${armPart(e) ? ` (${armPart(e)})` : ''} | ${e.equipment}`),
     '',
     'Answer with JSON only.',
   ]

@@ -1,4 +1,4 @@
-import { EQUIPMENT, MUSCLES, type Exercise, type Meta, type Workout } from '../db/types';
+import { ARM_PARTS, EQUIPMENT, MUSCLES, type Exercise, type Meta, type Workout } from '../db/types';
 
 // The one JSON file kept in the private repo, and the shape of an export.
 export const SYNC_FORMAT = 1;
@@ -56,7 +56,8 @@ const exerciseOk = (r: unknown): r is Exercise =>
   (MUSCLES as string[]).includes(r.primary as string) &&
   Array.isArray(r.secondary) &&
   (EQUIPMENT as string[]).includes(r.equipment as string) &&
-  typeof r.isCustom === 'boolean';
+  typeof r.isCustom === 'boolean' &&
+  (r.part === undefined || (ARM_PARTS as string[]).includes(r.part as string));
 
 const workoutOk = (r: unknown): r is Workout =>
   baseOk(r) &&

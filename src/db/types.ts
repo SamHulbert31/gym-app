@@ -2,6 +2,10 @@ export type Muscle = 'chest' | 'back' | 'shoulders' | 'arms' | 'legs' | 'core';
 export type Equipment = 'barbell' | 'dumbbell' | 'machine' | 'cable' | 'bodyweight' | 'kettlebell' | 'other';
 
 export const MUSCLES: Muscle[] = ['chest', 'back', 'shoulders', 'arms', 'legs', 'core'];
+
+/** Arms stay one muscle group for planning, but metrics can split them. */
+export type ArmPart = 'biceps' | 'triceps';
+export const ARM_PARTS: ArmPart[] = ['biceps', 'triceps'];
 export const EQUIPMENT: Equipment[] = ['barbell', 'dumbbell', 'machine', 'cable', 'bodyweight', 'kettlebell', 'other'];
 
 interface Record_ {
@@ -19,6 +23,7 @@ export interface Exercise extends Record_ {
   isCustom: boolean;
   increment?: number; // kg step for progression, overrides the default
   unavailable?: boolean; // marked as not available at the gym
+  part?: ArmPart; // for arms exercises, overrides the part worked out from the name
 }
 
 export interface SetLog {

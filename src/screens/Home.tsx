@@ -1,14 +1,15 @@
+import { Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Gear } from '../components/Icons';
 import SyncDot from '../components/SyncDot';
 import RecordRows from '../components/RecordRows';
 import { useActiveWorkout, useAllWorkouts, useExerciseMap } from '../hooks/data';
 import { createWorkout } from '../db/workouts';
-import { MUSCLES } from '../db/types';
+import { ARM_PARTS, MUSCLES } from '../db/types';
 import { muscleBalance } from '../engine/balance';
 import { latestRecords, recordEvents } from '../engine/records';
 import { thisWeek } from '../engine/stats';
-import { muscleLabel } from '../utils';
+import { muscleLabel, partLabel } from '../utils';
 
 const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
@@ -103,13 +104,27 @@ export default function Home() {
           <div className="caption">sets, last 14 days</div>
         </div>
         {ordered.map((m) => (
-          <div key={m} className="balance-row">
-            <div className="name">{muscleLabel(m)}</div>
-            <div className={`track${balance.lagging.includes(m) ? ' lag' : ''}`}>
-              <div style={{ width: `${Math.round((balance.sets[m] / maxSets) * 100)}%` }} />
+          <Fragment key={m}>
+            <div className="balance-row">
+              <div className="name">{muscleLabel(m)}</div>
+              <div className={`track${balance.lagging.includes(m) ? ' lag' : ''}`}>
+                <div style={{ width: `${Math.round((balance.sets[m] / maxSets) * 100)}%` }} />
+              </div>
+              <div className="val">{balance.sets[m]}</div>
             </div>
-            <div className="val">{balance.sets[m]}</div>
-          </div>
+            {/* Arms split into biceps and triceps, on the same scale as the groups above. */}
+            {m === 'arms' &&
+              balance.sets.arms > 0 &&
+              ARM_PARTS.map((p) => (
+                <div key={p} className="balance-row sub">
+                  <div className="name">{partLabel(p)}</div>
+                  <div className={`track${balance.laggingPart === p ? ' lag' : ''}`}>
+                    <div style={{ width: `${Math.round((balance.armParts[p] / maxSets) * 100)}%` }} />
+                  </div>
+                  <div className="val">{balance.armParts[p]}</div>
+                </div>
+              ))}
+          </Fragment>
         ))}
         <p className="note">{balance.sentence}</p>
       </section>

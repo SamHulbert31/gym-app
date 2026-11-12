@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react';
 import { useAllWorkouts, useExerciseMap } from '../hooks/data';
 import { setUnavailable } from '../db/workouts';
 import { EQUIPMENT, type Equipment, type Exercise } from '../db/types';
+import { armPart } from '../engine/classify';
 import { alternativesFor } from '../engine/generate';
 import { buildUsage } from '../engine/usage';
-import { equipmentLabel, muscleLabel } from '../utils';
+import { equipmentLabel, exerciseMuscleLabel } from '../utils';
 import Sheet from './Sheet';
 
 interface Props {
@@ -82,7 +83,7 @@ export default function SwapSheet({ current, excludeIds = [], onSwap, onClose }:
         </div>
       )}
 
-      <div className="caption">{q ? 'All exercises' : `Other ${current.primary} exercises`}</div>
+      <div className="caption">{q ? 'All exercises' : `Other ${current.primary} exercises${armPart(current) ? `, ${armPart(current)} first` : ''}`}</div>
       <div className="sheet-list swap-list">
         {shown.map((ex) => {
           const n = usage.count.get(ex.id) ?? 0;
@@ -91,7 +92,7 @@ export default function SwapSheet({ current, excludeIds = [], onSwap, onClose }:
               <span>
                 <span className="plan-name">{ex.name}</span>
                 <span className="plan-detail">
-                  {q ? `${muscleLabel(ex.primary)} · ` : ''}
+                  {q ? `${exerciseMuscleLabel(ex)} · ` : ''}
                   {equipmentLabel(ex.equipment)} · {n > 0 ? `done ${n} time${n === 1 ? '' : 's'}` : 'new to you'}
                 </span>
               </span>

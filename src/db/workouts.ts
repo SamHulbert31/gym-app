@@ -1,7 +1,8 @@
 import { loadSuggestContext, suggestIn } from '../engine/apply';
+import { defaultReps } from '../engine/classify';
 import { cancelPush, schedulePush } from '../sync';
 import { db, newId, nowISO } from './db';
-import type { Exercise, Muscle, SetLog, Workout, WorkoutExercise } from './types';
+import type { ArmPart, Exercise, Muscle, SetLog, Workout, WorkoutExercise } from './types';
 
 export const DEFAULT_TARGET = { sets: 3, repsLow: 8, repsHigh: 12 };
 
@@ -103,6 +104,25 @@ export const newTarget = (ex: Exercise): WorkoutExercise => ({
   sets: [],
 });
 
+// Adding mid-session appends the exercise with the same suggested weight, coaching line and
+// set rows it would have had if it was planned from the start. Returns its index, or -1 when
+// it is already in the session.
+export async function addExerciseToSession(workoutId: string, ex: Exercise): Promise<number> {
+  const ctx = await loadSuggestContext();
+  let index = -1;
+  await updateWorkout(workoutId, (w) => {
+    if (w.exercises.some((we) => we.exerciseId === ex.id)) return;
+    const we: WorkoutExercise = { ...newTarget(ex), target: { sets: DEFAULT_TARGET.sets, ...defaultReps(ex) }, order: w.exercises.length };
+    const s = suggestIn(ctx, ex, we.target, workoutId);
+    we.target.weight = s.weight;
+    we.note = s.coaching;
+    we.sets = Array.from({ length: we.target.sets }, (): SetLog => ({ weight: s.weight, done: false }));
+    w.exercises.push(we);
+    index = we.order;
+  });
+  return index;
+}
+
 // Swapping mid-session keeps done sets and re-suggests the weight for the sets still to do.
 export async function swapExercise(workoutId: string, index: number, to: Exercise) {
   const ctx = await loadSuggestContext();
@@ -118,10 +138,12 @@ export async function swapExercise(workoutId: string, index: number, to: Exercis
 }
 
 // Exercise settings: "not available at my gym" (it stops being suggested or offered anywhere)
-// and the per exercise weight increment that overrides the equipment default.
-export async function updateExerciseSettings(id: string, patch: { unavailable?: boolean; increment?: number }) {
+// the per exercise weight increment that overrides the equipment default, and for arms
+// exercises which side (biceps or triceps) it counts towards.
+export async function updateExerciseSettings(id: string, patch: { unavailable?: boolean; increment?: number; part?: ArmPart }) {
   const changes: Partial<Exercise> = { updatedAt: nowISO() };
   if ('unavailable' in patch) changes.unavailable = patch.unavailable || undefined;
+  if ('part' in patch) changes.part = patch.part;
   if ('increment' in patch) changes.increment = patch.increment && patch.increment > 0 ? patch.increment : undefined;
   await db.exercises.update(id, changes);
   schedulePush();
@@ -137,9 +159,13 @@ export async function deleteCustomExercise(id: string) {
   schedulePush();
 }
 
-export async function createCustomExercise(init: Pick<Exercise, 'name' | 'primary' | 'equipment'>): Promise<Exercise> {
+export async function createCustomExercise(
+  init: Pick<Exercise, 'name' | 'primary' | 'equipment'> & Partial<Pick<Exercise, 'part'>>,
+): Promise<Exercise> {
   const now = nowISO();
-  const ex: Exercise = { id: newId(), secondary: [], isCustom: true, createdAt: now, updatedAt: now, ...init };
+  const { part, ...rest } = init;
+  // Only arms exercises carry a side.
+  const ex: Exercise = { id: newId(), secondary: [], isCustom: true, createdAt: now, updatedAt: now, ...rest, ...(rest.primary === 'arms' && part ? { part } : {}) };
   await db.exercises.add(ex);
   schedulePush();
   return ex;

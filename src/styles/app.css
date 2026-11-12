@@ -343,6 +343,27 @@ input[type='search']::-webkit-search-decoration {
   text-align: right;
 }
 
+/* Biceps and triceps under Arms: indented, quieter, thinner bars. */
+.balance-row.sub {
+  font-size: 12px;
+  margin-top: -4px;
+}
+
+.balance-row.sub .name {
+  padding-left: 12px;
+  color: var(--muted);
+}
+
+.balance-row.sub .val {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.balance-row.sub .track,
+.balance-row.sub .track > div {
+  height: 5px;
+}
+
 .track {
   height: 8px;
   border-radius: 4px;
@@ -432,6 +453,10 @@ input[type='search']::-webkit-search-decoration {
   color: var(--text-2);
   font-size: 14px;
   font-weight: 600;
+}
+
+.segmented.five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .segmented button[aria-pressed='true'] {
@@ -553,6 +578,13 @@ input[type='search']::-webkit-search-decoration {
   font-weight: 700;
   font-size: 16px;
   text-align: center;
+  /* A button (tap for set options) that looks like plain text. */
+  min-height: 48px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  touch-action: manipulation;
 }
 
 .set-row.done .set-num {

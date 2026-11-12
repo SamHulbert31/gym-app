@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useExerciseMap } from '../hooks/data';
 import { createCustomExercise } from '../db/workouts';
-import { EQUIPMENT, MUSCLES, type Equipment, type Exercise, type Muscle } from '../db/types';
-import { equipmentLabel, muscleLabel } from '../utils';
+import { ARM_PARTS, EQUIPMENT, MUSCLES, type ArmPart, type Equipment, type Exercise, type Muscle } from '../db/types';
+import { armPart } from '../engine/classify';
+import { equipmentLabel, exerciseMuscleLabel, muscleLabel, partLabel } from '../utils';
 import { Check, Close } from './Icons';
 
 interface Props {
@@ -86,7 +87,7 @@ export default function ExercisePicker({ mode, initialMuscle, selectedIds = [], 
               <span>
                 <span className="plan-name">{ex.name}</span>
                 <span className="plan-detail">
-                  {muscleLabel(ex.primary)} · {equipmentLabel(ex.equipment)}
+                  {exerciseMuscleLabel(ex)} · {equipmentLabel(ex.equipment)}
                 </span>
               </span>
               {picked && (
@@ -112,9 +113,13 @@ function CreateForm(props: {
   const [name, setName] = useState(props.initialName);
   const [primary, setPrimary] = useState<Muscle>(props.initialMuscle);
   const [equipment, setEquipment] = useState<Equipment>('machine');
+  // Until chosen, the side follows the name ("Bayesian curl" is biceps, "JM press" triceps).
+  const [part, setPart] = useState<ArmPart | undefined>(undefined);
+  const side = part ?? armPart({ name, primary: 'arms' })!;
   const ready = name.trim().length > 0;
 
-  const save = async () => props.onCreated(await createCustomExercise({ name: name.trim(), primary, equipment }));
+  const save = async () =>
+    props.onCreated(await createCustomExercise({ name: name.trim(), primary, equipment, part: primary === 'arms' ? side : undefined }));
 
   return (
     <div className="overlay screen">
@@ -148,6 +153,18 @@ function CreateForm(props: {
               ))}
             </div>
           </div>
+          {primary === 'arms' && (
+            <div className="field">
+              <div className="caption">Which side</div>
+              <div className="chips">
+                {ARM_PARTS.map((p) => (
+                  <button key={p} className="chip" aria-pressed={side === p} onClick={() => setPart(p)}>
+                    {partLabel(p)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="field">
             <div className="caption">Equipment</div>
             <div className="chips">

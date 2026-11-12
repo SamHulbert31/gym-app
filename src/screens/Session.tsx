@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
-import { Check, ChevronLeft } from '../components/Icons';
+import ExercisePicker from '../components/ExercisePicker';
+import { Check, ChevronLeft, Plus } from '../components/Icons';
 import NumInput from '../components/NumInput';
 import Sheet from '../components/Sheet';
 import SwapSheet from '../components/SwapSheet';
@@ -9,7 +10,7 @@ import { useNow } from '../hooks/useNow';
 import { clearRest, useRest } from '../hooks/useRest';
 import { useWakeLock } from '../hooks/useWakeLock';
 import { nowISO } from '../db/db';
-import { discardWorkout, doneSetCount, finishWorkout, swapExercise, updateExercise } from '../db/workouts';
+import { addExerciseToSession, discardWorkout, doneSetCount, finishWorkout, swapExercise, updateExercise } from '../db/workouts';
 import type { Exercise, SetLog, WorkoutExercise } from '../db/types';
 import { restSecondsFor } from '../engine/classify';
 import { lastTimeText } from '../engine/format';
@@ -37,7 +38,7 @@ const repsText = (t: WorkoutExercise['target']) => (t.repsLow === t.repsHigh ? `
 const targetText = (t: WorkoutExercise['target']) =>
   `${t.sets} × ${repsText(t)}${t.weight ? ` at ${t.weight} kg` : ''}`;
 
-type Dialog = 'jump' | 'finish' | 'discard' | 'swap' | null;
+type Dialog = 'jump' | 'finish' | 'discard' | 'swap' | 'add' | { set: number } | null;
 
 export default function Session() {
   const { id = '' } = useParams();
@@ -49,6 +50,8 @@ export default function Session() {
   const now = useNow(1000);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [picked, setPicked] = useState<number | undefined>(undefined);
+  // The first exercise added from the picker, shown when it closes.
+  const firstAdded = useRef<number>(undefined);
 
   useWakeLock(workout?.status === 'active');
 
@@ -121,6 +124,25 @@ export default function Session() {
       e.sets.push({ weight: last?.weight ?? e.target.weight, done: false });
     });
 
+  const removeSet = (i: number) => {
+    void updateExercise(id, current, (e) => {
+      e.sets.splice(i, 1);
+    });
+    setDialog(null);
+  };
+
+  const addExercise = async (to: Exercise) => {
+    const index = await addExerciseToSession(id, to);
+    if (index >= 0) firstAdded.current ??= index;
+  };
+
+  const closeAdd = () => {
+    const index = firstAdded.current;
+    firstAdded.current = undefined;
+    if (index !== undefined) goTo(index);
+    else setDialog(null);
+  };
+
   const swapTo = (to: Exercise) => swapExercise(id, current, to);
 
   const finish = async () => {
@@ -180,10 +202,10 @@ export default function Session() {
                 data-set={i}
                 className={`set-grid set-row${s.done ? ' done' : ''}${i === activeSet ? ' active' : ''}`}
               >
-                <div className="set-num">
+                <button className="set-num" aria-label={`Set ${i + 1} options`} onClick={() => setDialog({ set: i })}>
                   {i + 1}
                   {s.done && bests && setRecord(s, bests) && <span className="pr">PR</span>}
-                </div>
+                </button>
                 <NumInput
                   className="set-input"
                   decimal
@@ -234,6 +256,10 @@ export default function Session() {
             </button>
           </div>
 
+          <button className="btn-outline add-btn" onClick={() => setDialog('add')}>
+            <Plus size={18} /> Add exercise
+          </button>
+
           {we.note && <p className="coach">{we.note}</p>}
 
           <div className="next-row">
@@ -272,6 +298,31 @@ export default function Session() {
             ))}
           </div>
         </Sheet>
+      )}
+
+      {dialog !== null && typeof dialog === 'object' && we.sets[dialog.set] && (
+        <Sheet title={`Set ${dialog.set + 1}`} onClose={() => setDialog(null)}>
+          <p className="note">
+            {we.sets[dialog.set].done
+              ? `Logged at ${we.sets[dialog.set].weight ?? 0} kg × ${we.sets[dialog.set].reps ?? 0}. Removing it takes it out of this workout.`
+              : 'Not done yet. Remove it if you are not doing this set.'}
+          </p>
+          <button className="btn-outline btn-warn" onClick={() => removeSet(dialog.set)}>
+            Remove set
+          </button>
+          <button className="btn-primary" onClick={() => setDialog(null)}>
+            Keep it
+          </button>
+        </Sheet>
+      )}
+
+      {dialog === 'add' && (
+        <ExercisePicker
+          mode="add"
+          selectedIds={workout.exercises.map((e) => e.exerciseId)}
+          onPick={(to) => void addExercise(to)}
+          onClose={closeAdd}
+        />
       )}
 
       {dialog === 'finish' && (

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SEED_EXERCISES } from '../db/seed';
 import { MUSCLES, type Exercise, type Muscle, type Workout } from '../db/types';
-import { isCompound, isHeavyCompound, restSecondsFor } from './classify';
+import { armPart, isCompound, isHeavyCompound, restSecondsFor } from './classify';
 import { alternativesFor, generatePlan, parseNoteAvoid, type GenerateInput, type PlanItem } from './generate';
 import { exerciseSeconds, planMinutes, planSeconds } from './time';
 import { buildUsage } from './usage';
@@ -75,6 +75,21 @@ describe('classification', () => {
     expect(restSecondsFor(ex('back-squat'), 90)).toBe(120);
     expect(restSecondsFor(ex('dumbbell-curl'), 90)).toBe(90);
     expect(restSecondsFor(ex('back-squat'), 150)).toBe(150);
+  });
+});
+
+describe('arm sides', () => {
+  it('sorts every seeded arms exercise into biceps or triceps', () => {
+    const side = (id: string) => armPart(ex(id));
+    expect(['barbell-curl', 'hammer-curl', 'preacher-curl', 'wrist-curl', 'reverse-curl'].map(side)).toEqual(Array(5).fill('biceps'));
+    expect(
+      ['triceps-pushdown', 'skull-crusher', 'close-grip-bench-press', 'triceps-dip', 'bench-dip', 'dumbbell-triceps-kickback', 'overhead-cable-triceps-extension'].map(side),
+    ).toEqual(Array(7).fill('triceps'));
+    expect(armPart(ex('barbell-bench-press'))).toBeUndefined();
+  });
+
+  it('lets an explicit side win over the name', () => {
+    expect(armPart({ name: 'Mystery arm thing', primary: 'arms', part: 'triceps' })).toBe('triceps');
   });
 });
 
@@ -235,6 +250,26 @@ describe('generatePlan', () => {
   });
 });
 
+describe('generatePlan for arms', () => {
+  it('alternates biceps and triceps', () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const plan = generatePlan(input({ focus: ['arms'], minutes: 45, rng: rngFrom(seed) }));
+      const sides = plan.map((p) => armPart(ex(p.exerciseId)));
+      const biceps = sides.filter((s) => s === 'biceps').length;
+      expect(Math.abs(biceps - (sides.length - biceps))).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('starts with the side that is behind', () => {
+    const behind = (armSets: { biceps: number; triceps: number }) =>
+      generatePlan(input({ focus: ['arms'], minutes: 30, armSets, rng: rngFrom(3) })).map((p) => armPart(ex(p.exerciseId)));
+    // Three arm exercises fit in 30 minutes: the side that is behind gets two of them.
+    const count = (sides: (string | undefined)[], side: string) => sides.filter((s) => s === side).length;
+    expect(count(behind({ biceps: 9, triceps: 1 }), 'triceps')).toBe(2);
+    expect(count(behind({ biceps: 1, triceps: 9 }), 'biceps')).toBe(2);
+  });
+});
+
 describe('parseNoteAvoid', () => {
   const avoid = (note: string, id: string) => parseNoteAvoid(note)(ex(id));
   it('leaves out what a negative note names', () => {
@@ -274,6 +309,14 @@ describe('alternativesFor', () => {
     const alts = alternativesFor(ex('barbell-curl'), lib, usage).map((e) => e.id);
     expect(alts[0]).toBe('dumbbell-curl');
     expect(alts.indexOf('hammer-curl')).toBeGreaterThan(alts.indexOf('cable-curl'));
+  });
+
+  it('offers the same side of the arm first', () => {
+    const alts = alternativesFor(ex('triceps-pushdown'), lib, buildUsage([], byId));
+    const sides = alts.map((e) => armPart(e));
+    const firstBiceps = sides.indexOf('biceps');
+    expect(sides.slice(0, firstBiceps).every((s) => s === 'triceps')).toBe(true);
+    expect(sides.slice(firstBiceps).every((s) => s === 'biceps')).toBe(true);
   });
 
   it('covers every muscle', () => {

@@ -1,10 +1,19 @@
 import type { FocusEvent } from 'react';
-import type { Equipment, Muscle } from './db/types';
+import type { ArmPart, Equipment, Exercise, Muscle } from './db/types';
+import { armPart } from './engine/classify';
 
 // Focusing a field selects its contents so one tap replaces the value.
 export const selectOnFocus = (e: FocusEvent<HTMLInputElement>) => e.currentTarget.select();
 
 export const muscleLabel = (m: Muscle) => m.charAt(0).toUpperCase() + m.slice(1);
+export const partLabel = (p: ArmPart) => p.charAt(0).toUpperCase() + p.slice(1);
+
+// "Biceps" or "Triceps" for arms exercises, the muscle group for everything else.
+export const exerciseMuscleLabel = (ex: Pick<Exercise, 'name' | 'primary' | 'part'>) => {
+  const part = armPart(ex);
+  return part ? partLabel(part) : muscleLabel(ex.primary);
+};
+
 export const equipmentLabel = (e: Equipment) => e.charAt(0).toUpperCase() + e.slice(1);
 
 // 754000 -> "12:34", 3_725_000 -> "1:02:05"

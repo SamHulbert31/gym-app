@@ -6,7 +6,7 @@ import NumInput from '../components/NumInput';
 import { useActiveWorkout, useExerciseMap, useWorkout } from '../hooks/data';
 import { discardWorkout, newTarget, startWorkout, updateWorkout } from '../db/workouts';
 import type { Exercise } from '../db/types';
-import { equipmentLabel, muscleLabel } from '../utils';
+import { equipmentLabel, exerciseMuscleLabel } from '../utils';
 
 export default function Builder() {
   const { id } = useParams();
@@ -107,7 +107,7 @@ export default function Builder() {
                     <div className="plan-name">{ex?.name ?? 'Unknown exercise'}</div>
                     {ex && (
                       <div className="plan-detail">
-                        {muscleLabel(ex.primary)} · {equipmentLabel(ex.equipment)}
+                        {exerciseMuscleLabel(ex)} · {equipmentLabel(ex.equipment)}
                       </div>
                     )}
                   </div>

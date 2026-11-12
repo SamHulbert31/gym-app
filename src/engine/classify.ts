@@ -1,4 +1,4 @@
-import type { Exercise } from '../db/types';
+import type { ArmPart, Exercise } from '../db/types';
 
 type Kind = Pick<Exercise, 'name' | 'equipment' | 'secondary'>;
 
@@ -39,3 +39,13 @@ export const STARTER_IDS = new Set([
   'standing-calf-raise', 'barbell-hip-thrust', 'hack-squat', 'goblet-squat',
   'plank', 'hanging-knee-raise', 'hanging-leg-raise', 'cable-crunch', 'pallof-press', 'ab-wheel-rollout',
 ]);
+
+// Which side of the arm an arms exercise works. An explicit `part` wins; otherwise the name
+// decides: pushdowns, extensions, kickbacks, dips, skull crushers and close-grip presses are
+// triceps, everything else (curls, including wrist and reverse curls) counts as biceps.
+const TRICEPS = /(tricep|pushdown|push-down|extension|kickback|skull|dip|close-grip|french press|jm press)/i;
+
+export function armPart(ex: Pick<Exercise, 'primary'> & Partial<Pick<Exercise, 'name' | 'part'>>): ArmPart | undefined {
+  if (ex.primary !== 'arms') return undefined;
+  return ex.part ?? (TRICEPS.test(ex.name ?? '') ? 'triceps' : 'biceps');
+}

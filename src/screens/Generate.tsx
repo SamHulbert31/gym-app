@@ -12,11 +12,11 @@ import { readSettings } from '../sync/config';
 import type { Exercise, Muscle } from '../db/types';
 import { makeSuggestContext, suggestIn } from '../engine/apply';
 import { defaultReps } from '../engine/classify';
-import { muscleBalance } from '../engine/balance';
+import { listOf, muscleBalance } from '../engine/balance';
 import { planDetail } from '../engine/format';
 import { generatePlan, type PlanItem } from '../engine/generate';
 import { planMinutes, planSeconds } from '../engine/time';
-import { muscleLabel, selectOnFocus } from '../utils';
+import { selectOnFocus } from '../utils';
 
 type Choice = Muscle | 'full';
 const CHIPS: [label: string, value: Choice][] = [
@@ -29,6 +29,9 @@ const CHIPS: [label: string, value: Choice][] = [
   ['Full body', 'full'],
 ];
 const DURATIONS = [30, 45, 60, 75];
+const CUSTOM_MIN = 10;
+const CUSTOM_MAX = 180;
+const CUSTOM_STEP = 5;
 
 type Dialog = { kind: 'actions' | 'swap'; index: number } | { kind: 'add' } | null;
 
@@ -40,6 +43,7 @@ export default function Generate() {
   const meta = useMeta();
   const [picked, setPicked] = useState<Choice[] | undefined>(undefined);
   const [minutes, setMinutes] = useState(45);
+  const [custom, setCustom] = useState(false);
   const [note, setNote] = useState('');
   const [items, setItems] = useState<PlanItem[] | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
@@ -90,7 +94,7 @@ export default function Generate() {
     } else {
       setAiNote(null);
     }
-    setItems(generatePlan({ ...base, muscleSets: balance.sets }));
+    setItems(generatePlan({ ...base, muscleSets: balance.sets, armSets: balance.armParts }));
   };
 
   const rows = (items ?? []).flatMap((item, index) => {
@@ -169,7 +173,7 @@ export default function Generate() {
           </div>
           {preselected && (
             <div className="caption">
-              {balance.lagging.map((m, i) => (i === 0 ? muscleLabel(m) : m)).join(' and ')} preselected: behind over the last two weeks.
+              {listOf(balance.lagging)} preselected: behind over the last two weeks.
             </div>
           )}
           {focus.length === 0 && <div className="caption">Pick one or more, or Full body.</div>}
@@ -177,13 +181,49 @@ export default function Generate() {
 
         <div className="field">
           <div className="caption">How long do you have?</div>
-          <div className="segmented">
+          <div className="segmented five">
             {DURATIONS.map((m) => (
-              <button key={m} aria-pressed={minutes === m} onClick={() => setMinutes(m)}>
+              <button
+                key={m}
+                aria-pressed={!custom && minutes === m}
+                onClick={() => {
+                  setCustom(false);
+                  setMinutes(m);
+                }}
+              >
                 {m} min
               </button>
             ))}
+            <button aria-pressed={custom} onClick={() => setCustom(true)}>
+              Custom
+            </button>
           </div>
+          {custom && (
+            <div className="stepper">
+              <span>Minutes</span>
+              <div className="stepper-controls">
+                <button
+                  className="step-btn"
+                  aria-label="Five minutes less"
+                  disabled={minutes <= CUSTOM_MIN}
+                  onClick={() => setMinutes((m) => Math.max(CUSTOM_MIN, m - CUSTOM_STEP))}
+                >
+                  −
+                </button>
+                <span className="stepper-value" aria-live="polite">
+                  {minutes}
+                </span>
+                <button
+                  className="step-btn"
+                  aria-label="Five minutes more"
+                  disabled={minutes >= CUSTOM_MAX}
+                  onClick={() => setMinutes((m) => Math.min(CUSTOM_MAX, m + CUSTOM_STEP))}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="field">

@@ -1,5 +1,5 @@
-import type { Exercise, Muscle, Workout } from '../db/types';
-import { defaultReps, isCompound, isHeavyCompound, STARTER_IDS } from './classify';
+import type { ArmPart, Exercise, Muscle, Workout } from '../db/types';
+import { armPart, defaultReps, isCompound, isHeavyCompound, STARTER_IDS } from './classify';
 import { exerciseSeconds, secondsPerSet } from './time';
 import { buildUsage, type Usage } from './usage';
 
@@ -23,6 +23,8 @@ export interface GenerateInput {
   avoid?: Iterable<string>;
   /** Sets per muscle recently. When time only allows some muscles, the lagging ones win. */
   muscleSets?: Record<Muscle, number>;
+  /** Recent biceps and triceps sets. Arms picks alternate between the two, the one behind first. */
+  armSets?: Record<ArmPart, number>;
   rng?: () => number;
 }
 
@@ -126,10 +128,18 @@ export function generatePlan(input: GenerateInput): PlanItem[] {
     s -= 8 * Math.min(usage.swappedAway.get(ex.id) ?? 0, 3); // things he keeps swapping away from
     if (avoid.has(ex.id)) s -= 6;
     if (m !== 'core') s += isCompound(ex) === (k % 2 === 0) ? 5 : 0; // compound, isolation, compound...
+    if (m === 'arms') {
+      // Biceps and triceps take turns; on the first pick the side that is behind goes first.
+      const part = armPart(ex)!;
+      const other: ArmPart = part === 'biceps' ? 'triceps' : 'biceps';
+      if (armPicked[part] < armPicked[other]) s += 12;
+      else if (armPicked[part] === armPicked[other] && input.armSets && input.armSets[part] < input.armSets[other]) s += 4;
+    }
     return s + rng() * 3;
   };
 
   const taken = new Set<string>();
+  const armPicked: Record<ArmPart, number> = { biceps: 0, triceps: 0 };
   const picks: PlanPick[] = [];
   const filled = new Map(muscles.map((m) => [m, 0]));
   const pickFor = (m: Muscle): Exercise | undefined => {
@@ -159,6 +169,8 @@ export function generatePlan(input: GenerateInput): PlanItem[] {
         continue;
       }
       taken.add(ex.id);
+      const part = armPart(ex);
+      if (part) armPicked[part]++;
       picks.push({ ex, muscle: m, order: picks.length, sets: 3 });
       filled.set(m, (filled.get(m) ?? 0) + 1);
       progressed = true;
@@ -242,17 +254,20 @@ export function fitToBudget(items: PlanPick[], budget: number, rest: number): Pl
 
 // ---------- Swap alternatives ----------
 
-// Same primary muscle, exercises he has logged first (most used first), then the equipment he
+// Same primary muscle (for arms, the same side first), exercises he has logged first (most used first), then the equipment he
 // tends to use for that muscle, then staples. Things he keeps swapping away from sink.
 export function alternativesFor(current: Exercise, library: Exercise[], usage: Usage, exclude: Iterable<string> = []): Exercise[] {
   const skip = new Set(exclude);
   skip.add(current.id);
   const affinity = usage.affinity(current.primary);
   const used = (e: Exercise) => usage.count.get(e.id) ?? 0;
+  const part = armPart(current);
+  const otherSide = (e: Exercise) => Number(!!part && armPart(e) !== part);
   return library
     .filter((e) => !e.deletedAt && !e.unavailable && e.primary === current.primary && !skip.has(e.id))
     .sort(
       (a, b) =>
+        otherSide(a) - otherSide(b) ||
         used(b) - used(a) ||
         (usage.swappedAway.get(a.id) ?? 0) - (usage.swappedAway.get(b.id) ?? 0) ||
         (affinity.get(b.equipment) ?? 0) - (affinity.get(a.equipment) ?? 0) ||
